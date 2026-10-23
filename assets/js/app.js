@@ -1,6 +1,6 @@
 import {CONFIG,readMode} from './config.js';
 import {createSession,transition,deriveStep} from './state.js';
-import {createStorage} from './storage.js';
+import {createBrowserStorage} from './storage.js';
 import {resolveRoute} from './router.js';
 import {loadContent} from './content.js';
 import {openDialog,setupDialog} from './dialog.js';
@@ -10,11 +10,13 @@ import {askGuide,GuideError,BANK,validateResponse} from './guide.js';
 import {createTelemetry} from './telemetry.js';
 import {renderCertificate,generateCertificate} from './certificate.js';
 import {loadArt} from './art.js';
+import {createKioskController} from './kiosk.js';
 
-const mode=readMode(location.search),store=createStorage(localStorage,sessionStorage);
+const mode=readMode(location.search),store=createBrowserStorage(window);
 let session=store.load(mode.mode),chapter,sources,viewedBeat=null,cleanupScreen=()=>{},qaBusy=false,showingAnswer=false,requestToken=0;
 let telemetry=createTelemetry(store,session.sessionId);
 let nickname='',generating=false;
+let kiosk=null;
 const main=document.querySelector('main'),dialog=document.querySelector('#dialog');
 setupDialog(dialog);
 /** Commit a state transition immediately. @param {import('./state.js').Action} action @returns {void} */
@@ -22,7 +24,7 @@ function apply(action){session=transition(session,action);store.save(session);}
 /** Record a safe event and expose a full-buffer note. @param {string} name @param {object} fields @param {string} [key] @returns {void} */
 function record(name,fields,key){if(!telemetry.record(name,fields,key))document.querySelector('#banner').textContent='The local event log is full. Export it before the next staff reset.';}
 /** Read only this visit's tab-local conversation. @returns {object[]} */
-function turns(){const data=store.read('transcript');return data?.sessionId===session.sessionId&&Array.isArray(data.turns)?data.turns:[];}
+function turns(){const data=store.read('transcript');return data?.sessionId===session.sessionId&&Array.isArray(data.turns)&&data.turns.length<=2&&data.turns.every(turn=>turn&&typeof turn.question==='string'&&turn.question.length<=120&&typeof turn.answer==='string'&&typeof turn.fallback==='boolean')?data.turns:[];}
 /** Offer a local download and release its object URL. @param {Blob} blob @param {string} name @returns {void} */
 function download(blob,name){const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 /** Produce one download at a time, with a real timing event. @returns {Promise<void>} */
@@ -34,7 +36,7 @@ async function submitQuestion(question,chip=null){
  record('qa_question_submit',{chapterId:'tea',source:chip?'chip':'free',latencyMs:0},`question-${turn}`);render();
  let response,fallback=false;
  try{response=validateResponse(await askGuide({sessionId:visit,chapterId:'tea',personaId:'tea_master',question,history:turns().flatMap(t=>[{role:'visitor',content:t.question},{role:'guide',content:t.answer}]),mode:mode.mode}));}
- catch(error){if(!(error instanceof GuideError))throw error;fallback=true;const sample=BANK[chip?chapter.qa.suggested.indexOf(chip):0];response={answer:sample.answer,sourceIds:sample.sourceIds,topicTag:sample.topicTag,safety:'ok',suggestedFollowUp:null};record('error',{code:'GUIDE_FALLBACK',chapterId:'tea',screen:'qa'});}
+ catch(error){if(!(error instanceof GuideError))throw error;if(token!==requestToken||visit!==session.sessionId||location.hash!=='#/tea')return;fallback=true;const sample=BANK[chip?chapter.qa.suggested.indexOf(chip):0];response={answer:sample.answer,sourceIds:sample.sourceIds,topicTag:sample.topicTag,safety:'ok',suggestedFollowUp:null};record('error',{code:'GUIDE_FALLBACK',chapterId:'tea',screen:'qa'});}
  if(token!==requestToken||visit!==session.sessionId||location.hash!=='#/tea')return;
  qaBusy=false;const topicTag=chip?.topicTag??response.topicTag;apply({type:'answer',topicTag,sourceIds:response.sourceIds});
  store.write('transcript',{sessionId:visit,turns:[...turns(),{question,answer:response.answer,fallback}]});
@@ -44,6 +46,10 @@ async function submitQuestion(question,chip=null){
 function go(route){if(location.hash===route)render();else location.hash=route;}
 /** Display information inside an accessible native dialog. @param {string} title @param {string} body @returns {void} */
 function showDialog(title,body){document.querySelector('#dialog-content').innerHTML=`<h2 id="dialog-title">${escapeHtml(title)}</h2>${body}`;openDialog(dialog,document.activeElement);}
+/** Clear this visit consistently for visitor, kiosk and staff resets. @param {string} trigger @returns {void} */
+function resetVisit(trigger){cleanupScreen();requestToken++;qaBusy=false;showingAnswer=false;nickname='';record('session_reset',{trigger});const cleared=store.reset(trigger==='staff');session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();document.querySelector('#banner').replaceChildren();if(!cleared)document.querySelector('#banner').textContent='This browser blocked clearing stored data. Clear this site’s data in browser settings before handing the device to another visitor.';kiosk?.activity();go('#/');}
+/** Show or update a cancelable certificate idle countdown. @param {number|null} seconds @returns {void} */
+function countdown(seconds){if(seconds===null){if(dialog.dataset.kind==='idle'){dialog.dataset.kind='';dialog.close();}return;}if(dialog.dataset.kind!=='idle'){showDialog('This visit is almost over.', '<p>Starting a new visit in <b id="idle-seconds">10</b> seconds.</p><div class="actions"><button data-action="keep-looking">Keep looking</button><button class="secondary" data-action="reset-now">Start a new visit</button></div>');dialog.dataset.kind='idle';}document.querySelector('#idle-seconds').textContent=String(seconds);}
 /** Render current route and move focus to its heading. @returns {void} */
 function render(){
  if(!chapter)return;
@@ -71,6 +77,7 @@ function render(){
 /** Handle declarative actions from the shell and screens. @param {MouseEvent} event @returns {void} */
 function onClick(event){const button=event.target.closest('[data-action]');if(!button||button.disabled)return;const action=button.dataset.action;
  switch(action){
+ case 'skip-content':event.preventDefault();main.focus();main.scrollIntoView({behavior:'instant'});break;
  case 'start':apply({type:'start'});record('session_start',{mode:mode.mode,appVersion:CONFIG.appVersion},'start');record('intro_complete',{elapsedMs:Date.now()-Date.parse(session.startedAt)},'intro-complete');go('#/order');break;
  case 'order':go('#/order');break;
  case 'tea':apply({type:'chapterIntro'});record('chapter_start',{chapterId:'tea'},'chapter-start');viewedBeat=null;go('#/tea');break;
@@ -88,6 +95,10 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'scene':apply({type:'stage',value:'scene'});go('#/scene');break;
  case 'certificate':apply({type:'stage',value:'certificate'});go('#/certificate');break;
  case 'download-certificate':void saveCertificate();break;
+ case 'keep-looking':kiosk?.activity();break;
+ case 'wake':kiosk?.activity();break;
+ case 'reset-now':resetVisit('kiosk');break;
+ case 'confirm-staff-reset':resetVisit('staff');break;
  case 'toggle-offline':document.querySelector('#banner').innerHTML='<div class="notice" role="status"><span>The core journey still works. The live guide is offline.</span><button class="secondary" data-action="dismiss-banner">Dismiss</button></div>';break;
  case 'dismiss-banner':document.querySelector('#banner').replaceChildren();break;
  case 'previous-beat':{const index=viewedBeat??session.chapters.tea.storyBeat;if(index===0)go('#/order');else{viewedBeat=index-1;render();}break;}
@@ -96,12 +107,19 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'privacy':showDialog('Privacy & AI', '<p>Nothing is sent anywhere in M1. Questions receive local development samples; no live AI provider is connected.</p><p>Progress, settings and up to 2,000 anonymous events are stored on this device. Questions and answers remain in this tab’s session storage until the tab closes or your visit is cleared. Your optional certificate name stays in memory and the downloaded image only.</p><p>A later live build will send typed questions to an AI service and will disclose its provider and retention terms before activation.</p><button data-action="reset">Clear my data</button>');break;
  case 'help':showDialog('Make yourself comfortable',`<p>Use Tab, Enter and Space to move through the experience. Story text and captions are always available. Choose steady mode during the practice for four taps without timing.</p><p>Narration not in this build.</p><p>${store.persistent?'Progress is saved on this device.':'Storage is unavailable. This visit works in memory; reloading will lose progress.'}</p><button class="secondary" data-action="reset">Start a new visit</button>${mode.dev?'<div class="dev-tools"><button class="secondary" data-action="export">Export local events</button><button class="secondary" data-action="toggle-offline">Show offline sample</button></div>':''}`);break;
  case 'reset':showDialog('Start a new visit?', '<p>Start a new visit? This clears progress, cards and questions on this device.</p><button data-action="confirm-reset">Start a new visit</button>');break;
- case 'confirm-reset':requestToken++;qaBusy=false;showingAnswer=false;nickname='';record('session_reset',{trigger:'visitor'});store.reset(false);session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();go('#/');break;
+ case 'confirm-reset':resetVisit('visitor');break;
  case 'close-dialog':dialog.close();break;
  }
 }
 document.addEventListener('click',onClick);
 document.addEventListener('input',event=>{if(event.target.id==='nickname'){nickname=event.target.value;renderCertificate(main.querySelector('canvas'),nickname,session,true);}});
 document.addEventListener('submit',event=>{if(event.target.id==='question-form'){event.preventDefault();void submitQuestion(document.querySelector('#question').value);}});
-window.addEventListener('hashchange',()=>{requestToken++;qaBusy=false;showingAnswer=false;viewedBeat=null;render();});
+window.addEventListener('hashchange',()=>{requestToken++;qaBusy=false;showingAnswer=false;viewedBeat=null;kiosk?.activity();render();});
 const [loaded]=await Promise.all([loadContent(),loadArt()]);chapter=loaded.chapter;sources=loaded.sources;render();
+if(mode.mode==='kiosk'){
+ const attract=document.createElement('div');attract.id='attract';attract.hidden=true;attract.innerHTML='<button data-action="wake"><span class="eyebrow">A TABLE FOR THE CURIOUS</span><span class="attract-title">A little taste.<br>A different time.</span><span>Touch to take a seat →</span></button>';document.body.append(attract);
+ kiosk=createKioskController({route:()=>location.hash||'#/',onAttract:visible=>{attract.hidden=!visible;if(visible)attract.querySelector('button').focus();else main.querySelector('h1')?.focus();},onCountdown:countdown,onReset:()=>resetVisit('kiosk')});
+ for(const eventName of ['pointerdown','keydown','input'])document.addEventListener(eventName,event=>{if(dialog.dataset.kind!=='idle'&&!event.target.closest('#attract'))kiosk.activity();});
+ dialog.addEventListener('close',()=>{if(!dialog.open&&dialog.dataset.kind==='idle'){dialog.dataset.kind='';kiosk.activity();}});
+}
+if(mode.reset)showDialog('Reset this device?', '<p>Export local events before clearing this device. Staff reset clears progress, questions, cards, settings and events.</p><div class="actions"><button class="secondary" data-action="export">Export local events</button><button data-action="confirm-staff-reset">Reset everything</button></div>');

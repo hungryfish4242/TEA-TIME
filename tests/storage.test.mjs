@@ -24,3 +24,8 @@ test('security errors fall back to memory and unexpected failures are surfaced',
   assert.equal(store.load('phone').sessionId,s.sessionId);assert.equal(store.persistent,false);
   assert.throws(()=>createStorage({getItem(){throw new Error('unexpected');}},memory()).load('phone'),/unexpected/);
 });
+test('quota failure does not prevent reset from clearing older disk progress and transcript',()=>{
+ const local=memory(),tab=memory(),store=createStorage(local,tab);store.save(createSession('phone'));store.write('transcript',{turns:['old visitor']});
+ local.setItem=()=>{throw new DOMException('Full','QuotaExceededError');};store.write('events',[{name:'new'}]);
+ store.reset(true);assert.equal(local.getItem(KEYS.progress),null);assert.equal(tab.getItem(KEYS.transcript),null);
+});

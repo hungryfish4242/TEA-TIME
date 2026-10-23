@@ -43,3 +43,6 @@ test('invalid sessions fail validation and early quiz cannot unlock a card', () 
   assert.equal(validSession({...s,chapters:{}}), false);
   assert.deepEqual(transition(s,{type:'quiz',correct:true}).cards,[]);
 });
+test('completed quiz without its card is rejected before the reveal screen can crash',()=>{
+ const s=createSession('phone');s.chapters.tea.status='in_progress';s.chapters.tea.storyBeat=3;s.chapters.tea.interaction.status='complete';s.chapters.tea.qa.status='skipped';s.chapters.tea.quiz.status='complete';assert.equal(validSession(s),false);
+});

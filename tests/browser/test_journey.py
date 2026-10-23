@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import functools
+import json
 import http.server
 import os
 import struct
@@ -40,6 +41,7 @@ class JourneyTests(unittest.TestCase):
         """Use an isolated browser context for each visitor."""
         self.context = self.browser.new_context(viewport={"width": 375, "height": 667})
         self.page: Page = self.context.new_page()
+        self.page.set_default_timeout(10000)
         self.errors: list[str] = []
         self.page.on("pageerror", lambda error: self.errors.append(str(error)))
 
@@ -158,6 +160,7 @@ class JourneyTests(unittest.TestCase):
         self.page.get_by_role("button", name="Complete remaining chapters", exact=True).click()
         self.page.get_by_role("button", name="See the three-card scene").click()
         self.page.get_by_role("button", name="Make my certificate").click()
+        self.page.get_by_label("Your nickname (optional)").wait_for()
 
     def test_certificate_download_dimensions_name_privacy_and_reload(self) -> None:
         """Download a real PNG and verify the optional name never persists."""
@@ -177,6 +180,125 @@ class JourneyTests(unittest.TestCase):
         self.assertEqual(self.page.get_by_label("Your nickname (optional)").input_value(), "")
         with self.page.expect_download():
             self.page.get_by_role("button", name="Download my certificate", exact=True).click()
+
+    def test_staff_reset_and_kiosk_countdown(self) -> None:
+        """Staff reset clears settings; a kiosk visitor can cancel an idle reset."""
+        self.page.clock.install()
+        self.open("?dev=1&mode=kiosk")
+        self.reach_certificate()
+        self.page.clock.fast_forward(60000)
+        self.page.get_by_role("button", name="Keep looking", exact=True).wait_for()
+        self.page.get_by_role("button", name="Keep looking", exact=True).click()
+        self.assertFalse(self.page.locator("dialog").is_visible())
+        self.page.clock.fast_forward(60000)
+        self.page.clock.fast_forward(10000)
+        self.page.wait_for_function("location.hash === '#/'")
+        self.assertIsNone(self.page.evaluate("localStorage.getItem('ccttm.progress.v1')"))
+        self.page.evaluate("localStorage.setItem('ccttm.settings.v1', JSON.stringify({captions:true}))")
+        self.page.goto(self.url + "/?reset=1")
+        self.page.get_by_role("button", name="Reset everything", exact=True).click()
+        self.assertIsNone(self.page.evaluate("localStorage.getItem('ccttm.settings.v1')"))
+
+    def test_offline_ten_visits_no_duplicate_cards_or_external_requests(self) -> None:
+        """A preloaded kiosk can complete ten visits after losing all network access."""
+        external: list[str] = []
+        self.page.on("request", lambda request: external.append(request.url) if not request.url.startswith(self.url) else None)
+        self.open("?dev=1")
+        self.context.set_offline(True)
+        for _ in range(10):
+            self.reach_certificate()
+            self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), ["tea", "bun", "tart"])
+            self.page.get_by_role("button", name="Start a new visit", exact=True).click()
+            self.page.locator("dialog").get_by_role("button", name="Start a new visit", exact=True).click()
+            self.page.wait_for_function("location.hash === '#/'")
+            self.assertIsNone(self.page.evaluate("sessionStorage.getItem('ccttm.transcript.v1')"))
+        self.assertEqual(external, [])
+
+    def test_layout_and_generated_art_screenshots(self) -> None:
+        """Save reproducible visual evidence at phone and kiosk sizes."""
+        self.open("?dev=1")
+        ready_ms = self.page.evaluate("performance.now()")
+        self.assertLess(ready_ms, 3000)
+        (ROOT / "tmp" / "browser-metrics.json").write_text(json.dumps({"browser": self.browser.version, "localReadyMs": round(ready_ms, 2)}, indent=2), encoding="utf-8")
+        for width, height in ((375, 667), (1024, 768), (1440, 1000)):
+            self.page.set_viewport_size({"width": width, "height": height})
+            self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), width)
+            self.page.screenshot(path=str(ROOT / "tmp" / f"entry-{width}.png"), full_page=True)
+        self.reach_certificate()
+        self.page.screenshot(path=str(ROOT / "tmp" / "certificate-studio.png"), full_page=True)
+        self.page.set_viewport_size({"width": 375, "height": 667})
+        self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 375)
+
+    def test_denied_storage_property_uses_memory(self) -> None:
+        """Storage denial at the Window getter must not prevent startup."""
+        self.context.add_init_script("Object.defineProperty(window, 'localStorage', {get() {throw new DOMException('Blocked by browser', 'SecurityError')}})")
+        self.open()
+        self.start_story()
+        self.page.get_by_role("button", name="Help & settings", exact=True).click()
+        self.assertIn("works in memory", self.page.locator("dialog").inner_text())
+
+    def key_activate(self, name: str, exact: bool = False) -> None:
+        """Reach a named button using only Tab and activate it with Enter."""
+        button = self.page.get_by_role("button", name=name, exact=exact)
+        button.wait_for()
+        for _ in range(80):
+            if button.evaluate("el => el === document.activeElement"):
+                self.page.keyboard.press("Enter")
+                return
+            self.page.keyboard.press("Tab")
+        self.fail(f"Keyboard could not reach {name}")
+
+    def test_keyboard_only_journey(self) -> None:
+        """Complete the visitor route and PNG download entirely from the keyboard."""
+        self.open("?dev=1")
+        for name in ("Begin my order", "Visit the tea table", "Begin the story", "Next beat", "Next beat", "Try the practice", "Use steady mode"):
+            self.key_activate(name)
+        for _ in range(4):
+            self.key_activate("Pour", exact=True)
+            self.page.wait_for_timeout(300)
+        for name in ("Continue", "Skip for now", "Four", "Collect my card", "Complete remaining chapters", "See the three-card scene", "Make my certificate"):
+            self.key_activate(name)
+        with self.page.expect_download():
+            self.key_activate("Download my certificate")
+
+    def test_skip_link_stays_in_current_chapter(self) -> None:
+        """Skipping repeated navigation focuses the existing chapter body."""
+        self.open()
+        self.start_story()
+        self.page.get_by_role("link", name="Skip to content").press("Enter")
+        self.assertEqual(self.page.evaluate("location.hash"), "#/tea")
+        self.assertTrue(self.page.locator("main").evaluate("el => el === document.activeElement"))
+
+    def test_corrupt_transcript_is_discarded(self) -> None:
+        """Malformed tab storage cannot crash a valid Q&A checkpoint."""
+        self.open()
+        self.reach_qa()
+        self.page.evaluate("sessionStorage.setItem('ccttm.transcript.v1', JSON.stringify({sessionId:JSON.parse(localStorage.getItem('ccttm.progress.v1')).sessionId,turns:[null]}))")
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.assertTrue(self.page.get_by_role("button", name="What does steady mode do?", exact=True).is_visible())
+
+    def test_reduced_motion_rhythm_uses_static_feedback(self) -> None:
+        """Even the default practice control honors reduced-motion preference."""
+        self.page.emulate_media(reduced_motion="reduce")
+        self.open()
+        self.reach_practice()
+        self.page.get_by_role("button", name="Start rhythm practice", exact=True).click()
+        self.assertFalse(self.page.locator(".rhythm").is_visible())
+
+    def test_late_timeout_does_not_recreate_reset_events(self) -> None:
+        """A pending old visit cannot add events after a visitor reset."""
+        self.page.clock.install()
+        self.open("?mock=fail")
+        self.reach_qa()
+        self.page.get_by_role("button", name="What does steady mode do?", exact=True).click()
+        self.page.get_by_role("button", name="Help & settings", exact=True).click()
+        self.page.locator("dialog").get_by_role("button", name="Start a new visit", exact=True).click()
+        self.page.locator("dialog").get_by_role("button", name="Start a new visit", exact=True).click()
+        self.page.get_by_role("button", name="Begin my order").wait_for()
+        self.page.clock.fast_forward(9000)
+        self.assertIsNone(self.page.evaluate("localStorage.getItem('ccttm.events.v1')"))
+        self.assertIsNone(self.page.evaluate("sessionStorage.getItem('ccttm.transcript.v1')"))
 
 
 if __name__ == "__main__":

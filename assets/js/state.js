@@ -19,7 +19,11 @@ export function validSession(value) {
     t.interaction && ['not_started','in_progress','retry','complete'].includes(t.interaction.status) && Number.isInteger(t.interaction.attempts) && t.interaction.attempts>=0 && t.interaction.attempts<=2 && Number.isInteger(t.interaction.lastCompletedPour) && t.interaction.lastCompletedPour>=0 && t.interaction.lastCompletedPour<=4 && Number.isInteger(t.interaction.goodPours) && t.interaction.goodPours>=0 && t.interaction.goodPours<=4 &&
     t.quiz && ['not_started','in_progress','complete'].includes(t.quiz.status) && Number.isInteger(t.quiz.attempts) && t.quiz.attempts>=0 && t.card &&
     s.chapters.bun && s.chapters.tart && Array.isArray(s.cards) && new Set(s.cards).size===s.cards.length && s.cards.every(c=>['tea','bun','tart'].includes(c)) && s.certificate &&
-    (!s.cards.includes('tea') || (t.quiz.status==='complete' && t.card.unlockedAt && ['craft','ratio','origin'].includes(t.card.variantId))));
+    Number.isFinite(Date.parse(s.startedAt)) && Number.isFinite(Date.parse(s.updatedAt)) && t.qa.sourceIds.every(id=>typeof id==='string') &&
+    (s.cards.includes('tea') === (t.quiz.status==='complete')) &&
+    (t.status!=='complete'||t.quiz.status==='complete') &&
+    (!s.cards.includes('tea') || (t.interaction.status==='complete' && t.storyBeat===3 && ['answered','skipped'].includes(t.qa.status) && typeof t.card.unlockedAt==='string' && ['craft','ratio','origin'].includes(t.card.variantId))) &&
+    ['bun','tart'].every(id=>!s.cards.includes(id)||(s.cards.includes('tea')&&s.chapters[id].status==='complete')));
 }
 /** Derive the tea checkpoint from progress. @param {Session} s @returns {string} */
 export function deriveStep(s) { const t=s.chapters.tea; if(t.status==='available')return 'intro';if(t.storyBeat<3)return 'story';if(t.interaction.status!=='complete')return 'interaction';if(['not_started','in_progress'].includes(t.qa.status))return 'qa';if(t.quiz.status!=='complete')return 'quiz';return 'reveal'; }

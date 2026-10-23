@@ -13,3 +13,6 @@ test('event cap preserves earlier evidence and returns overflow status',()=>{
  const store=storage(),events=createTelemetry(store,'session');for(let i=0;i<2000;i++)events.record('error',{code:String(i),chapterId:'tea',screen:'qa'});
  assert.equal(events.record('error',{code:'overflow'}),false);assert.equal(store.read('events').length,2000);assert.equal(store.read('events')[0].fields.code,'0');
 });
+test('structurally corrupt stored events do not block starting or exporting a visit',async()=>{
+ const store=storage();store.write('events',[null]);const events=createTelemetry(store,'session');events.record('session_start',{mode:'phone',appVersion:'0.1'},'start');const exported=JSON.parse(await events.export().text());assert.equal(exported.manifest.eventCount,1);assert.equal(exported.events[0].name,'session_start');
+});
