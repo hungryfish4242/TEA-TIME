@@ -16,6 +16,6 @@
 - Task 1: complete (`3afe40d`); `node --test` 7/7 passed after missing-module RED run. State/persistence/route guards implemented.
 - Task 2: complete (`6f6a8b8`); 10 unit tests and 2 browser checks passed. Development content validation passed; production check correctly rejected it.
 - Task 3: complete; 14 unit tests and 3 browser checks passed. Timing boundaries, retry, duplicate taps, steady mode and reload checkpoints verified.
-- Task 4: pending.
+- Task 4: complete; 18 unit tests and 5 browser checks passed, including actual 8-second forced timeout, two-turn cap, quiz correction and card persistence. Telemetry uses a storage-injected recorder for isolated tests; adapter request/response contracts remain exact.
 - Task 5: pending.
 - Task 6: pending.

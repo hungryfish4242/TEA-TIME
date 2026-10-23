@@ -108,6 +108,45 @@ class JourneyTests(unittest.TestCase):
             self.page.wait_for_timeout(300)
         self.assertIn("Practice complete", self.page.locator("main").inner_text())
 
+    def reach_qa(self) -> None:
+        """Complete the practice using the accessible four-tap mode."""
+        self.reach_practice()
+        self.page.get_by_role("button", name="Use steady mode", exact=True).click()
+        for _ in range(4):
+            self.page.get_by_role("button", name="Pour", exact=True).click()
+            self.page.wait_for_timeout(260)
+        self.page.get_by_role("button", name="Continue", exact=False).click()
+
+    def test_qa_two_turns_quiz_and_unique_variant(self) -> None:
+        """Two questions cap the guide and quiz correction still requires action."""
+        self.open()
+        self.reach_qa()
+        self.page.get_by_role("button", name="Can I skip a question?", exact=True).click()
+        self.page.wait_for_selector(".answer")
+        self.page.get_by_role("button", name="Where are the sources?", exact=True).click()
+        self.page.wait_for_selector("#qa-cap")
+        self.assertTrue(self.page.get_by_role("button", name="What does steady mode do?", exact=True).is_disabled())
+        self.page.get_by_role("button", name="Check my order", exact=True).click()
+        self.page.get_by_role("button", name="Two", exact=True).click()
+        self.page.get_by_role("button", name="Six", exact=True).click()
+        self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), [])
+        self.page.get_by_role("button", name="Place my order", exact=True).click()
+        self.assertIn("At the counter", self.page.locator("main").inner_text())
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), ["tea"])
+
+    def test_mock_failure_falls_back_and_skip_uses_default(self) -> None:
+        """A failed guide never blocks a visitor or changes the skip variant."""
+        self.open("?mock=fail")
+        self.reach_qa()
+        self.page.get_by_role("button", name="What does steady mode do?", exact=True).click()
+        self.page.wait_for_selector(".answer", timeout=8500)
+        self.assertIn("development sample", self.page.locator(".answer").inner_text())
+        self.page.get_by_role("button", name="Skip for now", exact=True).click()
+        self.page.get_by_role("button", name="Four", exact=True).click()
+        self.assertIn("The pour", self.page.locator("main").inner_text())
+
 
 if __name__ == "__main__":
     unittest.main()
