@@ -47,7 +47,7 @@ export function transition(previous,action) {
       if(t.interaction.status!=='complete'||!['answered','skipped'].includes(t.qa.status)||t.quiz.status==='complete')break;
       t.quiz.attempts++;if(t.quiz.attempts===1)t.quiz.firstTryCorrect=!!action.correct;t.quiz.status='in_progress';
       if(action.correct){t.quiz.status='complete';t.card={variantId:t.qa.topicTag??CHAPTERS[id].topics[0],unlockedAt:s.updatedAt};if(!s.cards.includes(id))s.cards.push(id);}break;
-    case 'collect':if(t.quiz.status==='complete'){t.status='complete';s.stage='order';s.currentChapter=null;const next=CHAPTER_IDS[CHAPTER_IDS.indexOf(id)+1];if(next&&s.chapters[next].status==='locked')s.chapters[next]=createChapter(next);}break;
+    case 'collect':if(t.quiz?.status==='complete'||t.status==='complete'){t.status='complete';s.stage='order';s.currentChapter=null;const next=CHAPTER_IDS[CHAPTER_IDS.indexOf(id)+1];if(next&&s.chapters[next].status==='locked')s.chapters[next]=createChapter(next);}break;
     case 'devComplete': if(action.dev && s.cards.includes('tea')){for(const id of ['bun','tart']){s.chapters[id]={status:'complete',card:{variantId:'craft',unlockedAt:s.updatedAt}};if(!s.cards.includes(id))s.cards.push(id);}}break;
     case 'stage': s.stage=action.value;break;
     case 'generated':s.certificate.generatedAt=s.updatedAt;break;

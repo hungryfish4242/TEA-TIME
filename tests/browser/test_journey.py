@@ -71,7 +71,7 @@ class JourneyTests(unittest.TestCase):
         self.assertIn("Beat 2 of 3", self.page.locator("main").text_content())
         self.page.goto(self.url + "/#/bun")
         self.page.wait_for_url("**/#/order")
-        self.assertTrue(self.page.get_by_role("button", name="Chapter 2 — coming in M2").is_disabled())
+        self.assertTrue(self.page.get_by_role("button", name="Visit the bun table").is_disabled())
 
     def test_modal_focus_and_phone_layout(self) -> None:
         """Dialogs restore focus; entry remains within a phone viewport."""
@@ -299,6 +299,38 @@ class JourneyTests(unittest.TestCase):
         self.page.clock.fast_forward(9000)
         self.assertIsNone(self.page.evaluate("localStorage.getItem('ccttm.events.v1')"))
         self.assertIsNone(self.page.evaluate("sessionStorage.getItem('ccttm.transcript.v1')"))
+
+    def finish_food_table(self, chapter: str) -> None:
+        """Finish either new chapter using keyboard actions and recover from a distractor."""
+        self.key_activate(f"Visit the {chapter} table")
+        for name in ("Begin the story", "Next beat", "Next beat", "Try the practice"):
+            self.key_activate(name)
+        if chapter == "bun":
+            for name in ("Split the warm bun", "Pineapple ring", "Cold butter", "Place and close"):
+                self.key_activate(name, exact=True)
+        else:
+            for name in ("Inspect shortcrust", "Choose shortcrust", "Inspect puff pastry", "Choose puff pastry"):
+                self.key_activate(name, exact=True)
+        self.assertNotIn(chapter, self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"))
+        self.key_activate("Continue")
+        self.key_activate("Skip for now")
+        self.key_activate("Cold butter" if chapter == "bun" else "Puff pastry", exact=True)
+        self.key_activate("Collect my card", exact=True)
+
+    def test_normal_three_chapter_journey(self) -> None:
+        """Complete all chapters and the certificate without development shortcuts."""
+        self.open()
+        self.reach_qa()
+        self.key_activate("Skip for now")
+        self.key_activate("Four", exact=True)
+        self.key_activate("Collect my card", exact=True)
+        self.finish_food_table("bun")
+        self.finish_food_table("tart")
+        self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), ["tea", "bun", "tart"])
+        self.key_activate("See the three-card scene")
+        self.key_activate("Make my certificate")
+        with self.page.expect_download():
+            self.key_activate("Download my certificate")
 
 
 if __name__ == "__main__":
