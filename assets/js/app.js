@@ -1,3 +1,4 @@
+import {shareCertificate} from './sharing.js';
 import {guideIsLive} from './transport.js';
 import {CHAPTERS} from './chapters.js';
 import {activityView,mountActivity} from './activities.js';
@@ -33,7 +34,7 @@ function allTurns(){const data=store.read('transcript');return data?.sessionId==
 /** Offer a local download and release its object URL. @param {Blob} blob @param {string} name @returns {void} */
 function download(blob,name){const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 /** Produce one download at a time, with a real timing event. @returns {Promise<void>} */
-async function saveCertificate(){if(generating)return;generating=true;const button=main.querySelector('[data-action="download-certificate"]');button.disabled=true;const started=performance.now(),visit=session.sessionId;try{const blob=await generateCertificate(nickname,session);if(visit!==session.sessionId)return;apply({type:'generated'});record('certificate_generate',{success:true,elapsedMs:Math.round(performance.now()-started)});download(blob,'cha-chaan-teng-certificate.png');apply({type:'downloaded'});record('certificate_download',{mode:mode.mode,method:'anchor'});const status=main.querySelector('#download-status');if(status)status.textContent='Your PNG is ready. Check your browser’s downloads.';}finally{generating=false;if(button.isConnected)button.disabled=false;}}
+async function saveCertificate(share=false){if(generating)return;generating=true;const button=main.querySelector('[data-action="download-certificate"]');button.disabled=true;const started=performance.now(),visit=session.sessionId;try{const blob=await generateCertificate(nickname,session);if(visit!==session.sessionId)return;apply({type:'generated'});record('certificate_generate',{success:true,elapsedMs:Math.round(performance.now()-started)});const outcome=share?await shareCertificate(blob):'download';if(outcome==='download'){download(blob,'cha-chaan-teng-certificate.png');apply({type:'downloaded'});record('certificate_download',{mode:mode.mode,method:'anchor'});}else if(outcome==='shared'){apply({type:'shared'});record('certificate_share',{mode:mode.mode,method:'native'});}const status=main.querySelector('#download-status');if(status)status.textContent=outcome==='shared'?'Your certificate was shared.':outcome==='cancelled'?'Sharing cancelled. Your certificate is still here.':'Your PNG is ready. Check your browser’s downloads.';}finally{generating=false;if(button.isConnected)button.disabled=false;}}
 /** Ask a local sample and discard stale responses after leaving or resetting. @param {string} question @param {object|null} chip @returns {Promise<void>} */
 async function submitQuestion(question,chip=null){
  if(qaBusy||session.chapters[chapter.id].qa.turns>=2||!question.trim()||question.length>120)return;
@@ -102,6 +103,7 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'scene':apply({type:'stage',value:'scene'});go('#/scene');break;
  case 'certificate':apply({type:'stage',value:'certificate'});go('#/certificate');break;
  case 'download-certificate':void saveCertificate();break;
+ case 'share-certificate':void saveCertificate(true);break;
  case 'keep-looking':kiosk?.activity();break;
  case 'wake':kiosk?.activity();break;
  case 'reset-now':resetVisit('kiosk');break;

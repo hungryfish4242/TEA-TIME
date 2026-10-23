@@ -332,6 +332,15 @@ class JourneyTests(unittest.TestCase):
         with self.page.expect_download():
             self.key_activate("Download my certificate")
 
+    def test_share_without_device_support_downloads_png(self) -> None:
+        """Unsupported native sharing still produces a real downloadable PNG."""
+        self.open("?dev=1")
+        self.reach_certificate()
+        self.page.evaluate("Object.defineProperty(navigator, 'canShare', {value: () => false, configurable:true})")
+        with self.page.expect_download() as result:
+            self.page.get_by_role("button", name="Share certificate", exact=True).click()
+        self.assertEqual(result.value.suggested_filename, "cha-chaan-teng-certificate.png")
+
 
 if __name__ == "__main__":
     unittest.main()

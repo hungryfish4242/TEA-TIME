@@ -52,6 +52,7 @@ export function transition(previous,action) {
     case 'stage': s.stage=action.value;break;
     case 'generated':s.certificate.generatedAt=s.updatedAt;break;
     case 'downloaded':s.certificate.downloadedAt=s.updatedAt;break;
+    case 'shared':s.certificate.sharedAt=s.updatedAt;break;
   }
   return s;
 }
