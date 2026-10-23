@@ -1,4 +1,5 @@
 import {CHAPTERS} from './chapters.js';
+import {guideIsLive,requestLiveGuide,LiveGuideError} from './transport.js';
 import {CONFIG} from './config.js';
 /** Expected guide boundary failure, handled by the local fallback UI. */
 export class GuideError extends Error {}
@@ -16,6 +17,7 @@ export function validateResponse(value,chapterId='tea'){const r=/** @type {Guide
 export async function askGuide(request){
  if(CONFIG.production)throw new GuideError('Mock guide cannot start in production');
  if(!request||!CHAPTERS[request.chapterId]||request.personaId!==CHAPTERS[request.chapterId].guideId||typeof request.question!=='string'||!request.question.trim()||request.question.length>120||!Array.isArray(request.history)||!['phone','kiosk'].includes(request.mode))throw new GuideError('Invalid guide request');
+ if(guideIsLive()){try{return validateResponse(await requestLiveGuide(request),request.chapterId);}catch(error){if(error instanceof LiveGuideError)throw new GuideError(error.message);throw error;}}
  const fail=new URLSearchParams(globalThis.location?.search??'').get('mock')==='fail';
  await new Promise(resolve=>setTimeout(resolve,fail?CONFIG.timeoutMs:400));
  if(fail)throw new GuideError('Mock timeout after 8000 ms');
