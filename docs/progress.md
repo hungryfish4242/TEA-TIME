@@ -58,3 +58,10 @@
 - Decorative home stamp was intercepting the new button on phones; moved below the welcome row and made pointer-transparent.
 - Full verification: 38 Node tests, 2 backend tests, 23 browser tests passed (69.286 seconds for browser suite). Fresh read-only review found no material issues. Logs: `tmp/unlock-final-unit.log`, `tmp/unlock-full-browser.log`.
 - Offline ZIP rebuilt: 29 files, 737,730 bytes. Source preview needs a browser refresh to load the new modules.
+
+## Provider swap to Alibaba Cloud Model Studio
+- User requested a new Q&A provider on 23 October 2026 and supplied a Bailian key after the previous `.local/config.json` had been deleted locally; no old credential was migrated or printed.
+- `server.py` now selects the contract from a config `protocol` field: `openai` posts `/chat/completions` with bearer auth, `anthropic` keeps `/v1/messages` with `x-api-key`; configuration accepts only allowlisted HTTPS hosts (`api.deepseek.com`, `dashscope.aliyuncs.com`).
+- RED→GREEN backend regressions cover the OpenAI request shape and rejection of unlisted hosts; 4 backend tests pass. Visitor-facing disclosure and privacy copy now name Alibaba Cloud Model Studio, with the live browser fixture assertion updated.
+- Verification: 38 Node tests, content gates, 4 backend tests and 23 browser tests passed; one transient browser error on the first post-change run did not reproduce in two following full runs. Real `/api/guide` answer via `qwen-flash` in 6,890 ms with valid grounding fields.
+- GitHub Pages and offline packages remain offline/mock only; they never call the provider.

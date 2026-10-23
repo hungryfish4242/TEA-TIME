@@ -1,6 +1,6 @@
 # The Cha Chaan Teng Time Machine
 
-An internal, English-language three-chapter prototype for AIH5571. Plain HTML/CSS/JavaScript with an optional standard-library Python DeepSeek proxy; no frontend build or runtime package dependencies.
+An internal, English-language three-chapter prototype for AIH5571. Plain HTML/CSS/JavaScript with an optional standard-library Python provider proxy (Alibaba Cloud Model Studio by local configuration); no frontend build or runtime package dependencies.
 
 ## Run locally
 
@@ -10,7 +10,7 @@ From the project directory:
 uv run python server.py --port 8000
 ```
 
-Open <http://127.0.0.1:8000/>. Complete tea, bun and tart in sequence, collect the three cards, then create your certificate. No development shortcut is needed. The configured local server enables live DeepSeek answers; `?offline=1` selects local sample answers.
+Open <http://127.0.0.1:8000/>. Complete tea, bun and tart in sequence, collect the three cards, then create your certificate. No development shortcut is needed. The configured local server enables live answers from the configured provider; `?offline=1` selects local sample answers.
 
 | Address | Purpose |
 | --- | --- |
@@ -21,7 +21,7 @@ Open <http://127.0.0.1:8000/>. Complete tea, bun and tart in sequence, collect t
 | `http://127.0.0.1:8000/?dev=1&mock=fail` | Forced 8-second guide timeout and local fallback |
 | `http://127.0.0.1:8000/?reset=1` | Confirmed staff reset with event-export prompt |
 
-Do not open `index.html` through `file://`; ES modules and JSON loading need the local HTTP server. Use `server.py` for the source checkout: it excludes `.local/`, `.git/`, test environments and other private files from HTTP serving. Live questions and current-table conversation are sent to DeepSeek; certificate names are never sent. After initial asset loading, the journey can continue without network access using fallback answers.
+Do not open `index.html` through `file://`; ES modules and JSON loading need the local HTTP server. Use `server.py` for the source checkout: it excludes `.local/`, `.git/`, test environments and other private files from HTTP serving. Live questions and current-table conversation are sent to the configured provider (Alibaba Cloud Model Studio); certificate names are never sent. After initial asset loading, the journey can continue without network access using fallback answers.
 
 ## What is implemented
 
