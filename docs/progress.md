@@ -17,5 +17,6 @@
 - Task 2: complete (`6f6a8b8`); 10 unit tests and 2 browser checks passed. Development content validation passed; production check correctly rejected it.
 - Task 3: complete; 14 unit tests and 3 browser checks passed. Timing boundaries, retry, duplicate taps, steady mode and reload checkpoints verified.
 - Task 4: complete; 18 unit tests and 5 browser checks passed, including actual 8-second forced timeout, two-turn cap, quiz correction and card persistence. Telemetry uses a storage-injected recorder for isolated tests; adapter request/response contracts remain exact.
-- Task 5: pending.
+- Task 5: certificate implementation passed 20 unit tests and 6 browser checks; PNG verified at 1080 × 1350 with empty/named variants. User then requested generated art instead of SVG; integrating three built-in image-generation outputs before commit.
+- Art change: explicitly authorized by user on 23 October; replace food SVGs and certificate shape drawings with three generated illustrations. Keep development status and source-review notices. Original PNGs and generation prompts retained in the project.
 - Task 6: pending.

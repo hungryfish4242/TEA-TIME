@@ -4,14 +4,17 @@ import {createStorage} from './storage.js';
 import {resolveRoute} from './router.js';
 import {loadContent} from './content.js';
 import {openDialog,setupDialog} from './dialog.js';
-import {escapeHtml,entryView,orderView,introView,storyView,teaView,qaView,quizView,cardView} from './views.js';
+import {escapeHtml,entryView,orderView,introView,storyView,teaView,qaView,quizView,cardView,sceneView,certificateView} from './views.js';
 import {mountTea} from './tea.js';
 import {askGuide,GuideError,BANK,validateResponse} from './guide.js';
 import {createTelemetry} from './telemetry.js';
+import {renderCertificate,generateCertificate} from './certificate.js';
+import {loadArt} from './art.js';
 
 const mode=readMode(location.search),store=createStorage(localStorage,sessionStorage);
 let session=store.load(mode.mode),chapter,sources,viewedBeat=null,cleanupScreen=()=>{},qaBusy=false,showingAnswer=false,requestToken=0;
 let telemetry=createTelemetry(store,session.sessionId);
+let nickname='',generating=false;
 const main=document.querySelector('main'),dialog=document.querySelector('#dialog');
 setupDialog(dialog);
 /** Commit a state transition immediately. @param {import('./state.js').Action} action @returns {void} */
@@ -22,6 +25,8 @@ function record(name,fields,key){if(!telemetry.record(name,fields,key))document.
 function turns(){const data=store.read('transcript');return data?.sessionId===session.sessionId&&Array.isArray(data.turns)?data.turns:[];}
 /** Offer a local download and release its object URL. @param {Blob} blob @param {string} name @returns {void} */
 function download(blob,name){const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+/** Produce one download at a time, with a real timing event. @returns {Promise<void>} */
+async function saveCertificate(){if(generating)return;generating=true;const button=main.querySelector('[data-action="download-certificate"]');button.disabled=true;const started=performance.now(),visit=session.sessionId;try{const blob=await generateCertificate(nickname,session);if(visit!==session.sessionId)return;apply({type:'generated'});record('certificate_generate',{success:true,elapsedMs:Math.round(performance.now()-started)});download(blob,'cha-chaan-teng-certificate.png');apply({type:'downloaded'});record('certificate_download',{mode:mode.mode,method:'anchor'});const status=main.querySelector('#download-status');if(status)status.textContent='Your PNG is ready. Check your browser’s downloads.';}finally{generating=false;if(button.isConnected)button.disabled=false;}}
 /** Ask a local sample and discard stale responses after leaving or resetting. @param {string} question @param {object|null} chip @returns {Promise<void>} */
 async function submitQuestion(question,chip=null){
  if(qaBusy||session.chapters.tea.qa.turns>=2||!question.trim()||question.length>120)return;
@@ -47,6 +52,8 @@ function render(){
  let html='';
  if(route==='#/')html=entryView();
  if(route==='#/order')html=orderView(session,mode.dev);
+ if(route==='#/scene'){html=sceneView(session);record('scene_view',{elapsedMs:Date.now()-Date.parse(session.startedAt)},'scene');}
+ if(route==='#/certificate')html=certificateView(nickname);
  if(route==='#/tea'){
    const step=deriveStep(session);
    if(step==='intro')html=introView();
@@ -57,6 +64,7 @@ function render(){
    else html=cardView(chapter,session.chapters.tea);
  }
  main.innerHTML=html;main.dataset.ready='true';main.querySelector('h1')?.focus({preventScroll:true});window.scrollTo(0,0);
+ if(route==='#/certificate')renderCertificate(main.querySelector('canvas'),nickname,session,true);
  if(route==='#/tea'&&deriveStep(session)==='interaction'){record('interaction_start',{chapterId:'tea'},'interaction-start');cleanupScreen=mountTea(main,session.chapters.tea.interaction,(value,result)=>{apply({type:'interaction',value});if(result)record('interaction_attempt',{chapterId:'tea',attemptNumber:value.attempts,result},`pour-${value.attempts}-${value.lastCompletedPour}`);if(value.status==='complete')record('interaction_complete',{chapterId:'tea',attempts:value.attempts,steadyMode:value.usedSteadyMode},'interaction-complete');});}
  document.title=`${main.querySelector('h1')?.textContent??'Your visit'} · Time Machine`;
 }
@@ -76,19 +84,24 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'collect':apply({type:'collect'});record('chapter_complete',{chapterId:'tea',elapsedMs:Date.now()-Date.parse(session.startedAt)},'chapter-complete');go('#/order');break;
  case 'card-detail':{const card=chapter.cards.find(c=>c.variantId===session.chapters.tea.card.variantId);showDialog(card.title,`<p>${escapeHtml(card.caption)}</p><p>${escapeHtml(card.fact)}</p><button class="text-button" data-action="sources">Source: development placeholder — not a cultural source.</button>`);break;}
  case 'export':download(telemetry.export(),'time-machine-events.json');break;
+ case 'dev-complete':apply({type:'devComplete',dev:mode.dev});render();break;
+ case 'scene':apply({type:'stage',value:'scene'});go('#/scene');break;
+ case 'certificate':apply({type:'stage',value:'certificate'});go('#/certificate');break;
+ case 'download-certificate':void saveCertificate();break;
  case 'toggle-offline':document.querySelector('#banner').innerHTML='<div class="notice" role="status"><span>The core journey still works. The live guide is offline.</span><button class="secondary" data-action="dismiss-banner">Dismiss</button></div>';break;
  case 'dismiss-banner':document.querySelector('#banner').replaceChildren();break;
  case 'previous-beat':{const index=viewedBeat??session.chapters.tea.storyBeat;if(index===0)go('#/order');else{viewedBeat=index-1;render();}break;}
  case 'how':showDialog('Your table is ready.', '<ol><li>Take your order card. Three tables are waiting.</li><li>At each table, hear the story, try the craft, and ask a question.</li><li>Collect three cards. Put them together. Make your certificate.</li></ol><p>About 15–20 minutes for the planned full journey. This M1 build contains the tea table. Text, keyboard controls and a no-timing steady mode are available.</p><p>AI guide (mock) — no live model in this build. Final answers will be grounded in curator sources.</p>');break;
- case 'sources':showDialog('Sources & credits',`<p>Development entries only. Cultural fact sheets, final artwork and narration are pending review.</p><ul>${sources.map(s=>`<li><b>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</b><p>${escapeHtml(s.description)}</p></li>`).join('')}</ul><p>Illustrations: original CSS/SVG development drawings. Fonts: local Georgia and Trebuchet MS with local fallbacks; no font files redistributed. No audio assets in this build.</p><p>The guides are fictional composite characters.</p>`);break;
+ case 'sources':showDialog('Sources & credits',`<p>Development entries only. Cultural fact sheets, final artwork and narration are pending review.</p><ul>${sources.map(s=>`<li><b>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</b><p>${escapeHtml(s.description)}</p></li>`).join('')}</ul><p>Illustrations: three AI-generated editorial food studies, created for this project. Team review pending. Fonts: local Georgia and Trebuchet MS with local fallbacks; no font files redistributed. No audio assets in this build.</p><p>The guides are fictional composite characters.</p>`);break;
  case 'privacy':showDialog('Privacy & AI', '<p>Nothing is sent anywhere in M1. Questions receive local development samples; no live AI provider is connected.</p><p>Progress, settings and up to 2,000 anonymous events are stored on this device. Questions and answers remain in this tab’s session storage until the tab closes or your visit is cleared. Your optional certificate name stays in memory and the downloaded image only.</p><p>A later live build will send typed questions to an AI service and will disclose its provider and retention terms before activation.</p><button data-action="reset">Clear my data</button>');break;
  case 'help':showDialog('Make yourself comfortable',`<p>Use Tab, Enter and Space to move through the experience. Story text and captions are always available. Choose steady mode during the practice for four taps without timing.</p><p>Narration not in this build.</p><p>${store.persistent?'Progress is saved on this device.':'Storage is unavailable. This visit works in memory; reloading will lose progress.'}</p><button class="secondary" data-action="reset">Start a new visit</button>${mode.dev?'<div class="dev-tools"><button class="secondary" data-action="export">Export local events</button><button class="secondary" data-action="toggle-offline">Show offline sample</button></div>':''}`);break;
  case 'reset':showDialog('Start a new visit?', '<p>Start a new visit? This clears progress, cards and questions on this device.</p><button data-action="confirm-reset">Start a new visit</button>');break;
- case 'confirm-reset':requestToken++;qaBusy=false;showingAnswer=false;record('session_reset',{trigger:'visitor'});store.reset(false);session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();go('#/');break;
+ case 'confirm-reset':requestToken++;qaBusy=false;showingAnswer=false;nickname='';record('session_reset',{trigger:'visitor'});store.reset(false);session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();go('#/');break;
  case 'close-dialog':dialog.close();break;
  }
 }
 document.addEventListener('click',onClick);
+document.addEventListener('input',event=>{if(event.target.id==='nickname'){nickname=event.target.value;renderCertificate(main.querySelector('canvas'),nickname,session,true);}});
 document.addEventListener('submit',event=>{if(event.target.id==='question-form'){event.preventDefault();void submitQuestion(document.querySelector('#question').value);}});
 window.addEventListener('hashchange',()=>{requestToken++;qaBusy=false;showingAnswer=false;viewedBeat=null;render();});
-const loaded=await loadContent();chapter=loaded.chapter;sources=loaded.sources;render();
+const [loaded]=await Promise.all([loadContent(),loadArt()]);chapter=loaded.chapter;sources=loaded.sources;render();

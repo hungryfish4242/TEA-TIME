@@ -4,6 +4,7 @@ from __future__ import annotations
 import functools
 import http.server
 import os
+import struct
 import threading
 import unittest
 from pathlib import Path
@@ -79,6 +80,7 @@ class JourneyTests(unittest.TestCase):
         self.page.keyboard.press("Escape")
         self.assertTrue(trigger.evaluate("el => el === document.activeElement"))
         self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 375)
+        self.assertTrue(self.page.locator(".hero-cup img").evaluate("img => img.complete && img.naturalWidth > 1000"))
 
     def reach_practice(self) -> None:
         """Complete the three story beats."""
@@ -146,6 +148,35 @@ class JourneyTests(unittest.TestCase):
         self.page.get_by_role("button", name="Skip for now", exact=True).click()
         self.page.get_by_role("button", name="Four", exact=True).click()
         self.assertIn("The pour", self.page.locator("main").inner_text())
+
+    def reach_certificate(self) -> None:
+        """Collect tea and fill the explicitly development-only card slots."""
+        self.reach_qa()
+        self.page.get_by_role("button", name="Skip for now", exact=True).click()
+        self.page.get_by_role("button", name="Four", exact=True).click()
+        self.page.get_by_role("button", name="Collect my card", exact=True).click()
+        self.page.get_by_role("button", name="Complete remaining chapters", exact=True).click()
+        self.page.get_by_role("button", name="See the three-card scene").click()
+        self.page.get_by_role("button", name="Make my certificate").click()
+
+    def test_certificate_download_dimensions_name_privacy_and_reload(self) -> None:
+        """Download a real PNG and verify the optional name never persists."""
+        self.open("?dev=1")
+        self.reach_certificate()
+        self.page.get_by_label("Your nickname (optional)").fill("<b>Alex</b> ☕")
+        with self.page.expect_download() as info:
+            self.page.get_by_role("button", name="Download my certificate", exact=True).click()
+        path = ROOT / "tmp" / "certificate-test.png"
+        info.value.save_as(path)
+        data = path.read_bytes()
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", data[16:24]), (1080, 1350))
+        self.assertNotIn("Alex", self.page.evaluate("JSON.stringify({...localStorage,...sessionStorage})"))
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.assertEqual(self.page.get_by_label("Your nickname (optional)").input_value(), "")
+        with self.page.expect_download():
+            self.page.get_by_role("button", name="Download my certificate", exact=True).click()
 
 
 if __name__ == "__main__":
