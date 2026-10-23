@@ -1,7 +1,80 @@
 [
- {"id":"DEV-QA-01","title":"Development sample: steady mode","devOnly":true,"description":"Explains the prototype controls only. Not a cultural source."},
- {"id":"DEV-QA-02","title":"Development sample: skipping questions","devOnly":true,"description":"Explains the prototype controls only. Not a cultural source."},
- {"id":"DEV-QA-03","title":"Development sample: source panel","devOnly":true,"description":"Explains this development source panel only."},
- {"id":"DEV-UI-02","title":"Four-pour practice specification","devOnly":true,"description":"A game rule for this prototype; not a traditional preparation method."},
- {"id":"DEV-UI-03","title":"Generated development illustration","devOnly":true,"description":"AI-generated editorial food study. Team cultural and artwork review pending; not a historical source."}
+  {
+    "id": "DEV-QA-01",
+    "title": "Development sample: steady mode",
+    "devOnly": true,
+    "description": "Explains the prototype controls only. Not a cultural source."
+  },
+  {
+    "id": "DEV-QA-02",
+    "title": "Development sample: skipping questions",
+    "devOnly": true,
+    "description": "Explains the prototype controls only. Not a cultural source."
+  },
+  {
+    "id": "DEV-QA-03",
+    "title": "Development sample: source panel",
+    "devOnly": true,
+    "description": "Explains this development source panel only."
+  },
+  {
+    "id": "DEV-UI-02",
+    "title": "Four-pour practice specification",
+    "devOnly": true,
+    "description": "A game rule for this prototype; not a traditional preparation method."
+  },
+  {
+    "id": "DEV-UI-03",
+    "title": "Generated development illustration",
+    "devOnly": true,
+    "description": "AI-generated editorial food study. Team cultural and artwork review pending; not a historical source."
+  },
+  {
+    "id": "DEV-BUN-QA-01",
+    "title": "Pineapple bun with butter: development activity",
+    "devOnly": true,
+    "description": "Split the practice bun first. The ingredient buttons become available after the first step."
+  },
+  {
+    "id": "DEV-BUN-QA-02",
+    "title": "Pineapple bun with butter: development activity",
+    "devOnly": true,
+    "description": "Choose the cold butter slab for this practice recipe, then close the bun. This answer describes the prototype task, not a historical claim."
+  },
+  {
+    "id": "DEV-BUN-QA-03",
+    "title": "Pineapple bun with butter: development activity",
+    "devOnly": true,
+    "description": "Yes. A different ingredient gives a clue and lets you choose again. There is no score or failed round."
+  },
+  {
+    "id": "DEV-BUN-UI",
+    "title": "Pineapple bun with butter: prototype controls",
+    "devOnly": true,
+    "description": "Local interaction rules and generated art. Not a cultural source."
+  },
+  {
+    "id": "DEV-TART-QA-01",
+    "title": "Hong Kong egg tart: development activity",
+    "devOnly": true,
+    "description": "Inspection is optional. Both samples have text descriptions, and you can select a sample directly. There is no timer."
+  },
+  {
+    "id": "DEV-TART-QA-02",
+    "title": "Hong Kong egg tart: development activity",
+    "devOnly": true,
+    "description": "The puff-pastry sample is labelled layered and flaky in this activity. Compare the written cross-section descriptions before choosing."
+  },
+  {
+    "id": "DEV-TART-QA-03",
+    "title": "Hong Kong egg tart: development activity",
+    "devOnly": true,
+    "description": "You will receive a clue and can choose again. Both styles are presented without ranking either as better."
+  },
+  {
+    "id": "DEV-TART-UI",
+    "title": "Hong Kong egg tart: prototype controls",
+    "devOnly": true,
+    "description": "Local interaction rules and generated art. Not a cultural source."
+  }
 ]

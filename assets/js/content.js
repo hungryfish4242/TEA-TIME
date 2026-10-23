@@ -1,3 +1,4 @@
+import {CHAPTERS,CHAPTER_IDS} from './chapters.js';
 import {CONFIG} from './config.js';
 /** @typedef {{id:string,title:string,devOnly:boolean,description:string}} Source */
 /** @typedef {{id:string,devOnly:boolean,guideId:string,title:string,oneIdea:string,beats:object[],interaction:object,qa:object,quiz:object,cards:object[],defaultCardVariant:string}} Chapter */
@@ -6,14 +7,14 @@ export function validateChapter(value,sources,production) {
   const c=/** @type {Chapter} */(value);
   /** Fail with a usable content diagnostic. @param {boolean} condition @param {string} message @returns {void} */
   function require(condition,message){if(!condition)throw new Error(`Content invalid: ${message}`);}
-  require(!!c && c.id==='tea' && c.guideId==='tea_master','chapter or guide');
+  require(!!c && CHAPTERS[c.id] && c.guideId===CHAPTERS[c.id].guideId,'chapter or guide');
   require(typeof c.title==='string' && typeof c.oneIdea==='string','title and oneIdea');
   require(Array.isArray(c.beats)&&c.beats.length===3,'three beats required');
   require(Array.isArray(c.cards)&&c.cards.length===3 && new Set(c.cards.map(v=>v.variantId)).size===3,'three unique card variants required');
   require(c.cards.some(v=>v.variantId===c.defaultCardVariant),'default variant missing');
-  const ids=new Set(sources.map(s=>s.id)),tags=['craft','ratio','origin'];
+  const ids=new Set(sources.map(s=>s.id)),tags=CHAPTERS[c.id].topics;
   require(c.qa?.maxTurns===2 && c.qa.suggested?.length===3,'QA shape');
-  require(c.interaction?.type==='tea_pour' && c.interaction.pours===4,'interaction shape');
+  require(c.interaction?.type===CHAPTERS[c.id].type && (c.id!=='tea'||c.interaction.pours===4),'interaction shape');
   require(c.quiz?.options?.length===3 && Number.isInteger(c.quiz.correctIndex)&&c.quiz.correctIndex>=0&&c.quiz.correctIndex<3,'quiz index');
   require(ids.has(c.quiz.sourceId),'quiz source missing');
   for(const q of c.qa.suggested)require(tags.includes(q.topicTag)&&ids.has(q.fallbackSourceId)&&typeof q.text==='string','question topic/source');
@@ -29,7 +30,7 @@ export function validateChapter(value,sources,production) {
 }
 /** Load local assets once so the core journey survives disconnection. @returns {Promise<{chapter:Chapter,sources:Source[]}>} */
 export async function loadContent(){
-  const paths=['content/chapters/tea.dev.json','content/sources.json'];
+  const paths=[...CHAPTER_IDS.map(id=>`content/chapters/${id}.dev.json`),'content/sources.json'];
   const data=await Promise.all(paths.map(async path=>{const response=await fetch(path);if(!response.ok)throw new Error(`Content load failed: ${path}: ${response.status}`);return response.json();}));
-  return {chapter:validateChapter(data[0],data[1],CONFIG.production),sources:data[1]};
+  return {chapter:validateChapter(data[0],data[3],CONFIG.production),chapters:Object.fromEntries(CHAPTER_IDS.map((id,i)=>[id,validateChapter(data[i],data[3],CONFIG.production)])),sources:data[3]};
 }

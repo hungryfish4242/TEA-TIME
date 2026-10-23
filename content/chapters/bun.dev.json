@@ -1,0 +1,102 @@
+{
+  "id": "bun",
+  "devOnly": true,
+  "contentVersion": "dev-0.2",
+  "guideId": "bakery_auntie",
+  "title": "Pineapple bun with butter",
+  "oneIdea": "Fusion",
+  "beats": [
+    {
+      "id": "bun-b1",
+      "title": "Another place at the table",
+      "text": "Development placeholder — final story text is pending source review. This is panel 1 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 1 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    },
+    {
+      "id": "bun-b2",
+      "title": "Look before you choose",
+      "text": "Development placeholder — final story text is pending source review. This is panel 2 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 2 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    },
+    {
+      "id": "bun-b3",
+      "title": "Make it your own",
+      "text": "Development placeholder — final story text is pending source review. This is panel 3 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 3 at the bun table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    }
+  ],
+  "interaction": {
+    "type": "bun_build"
+  },
+  "qa": {
+    "maxTurns": 2,
+    "suggested": [
+      {
+        "id": "bun-q1",
+        "text": "How do I begin the bun practice?",
+        "topicTag": "crust",
+        "fallbackSourceId": "DEV-BUN-QA-01"
+      },
+      {
+        "id": "bun-q2",
+        "text": "What goes inside this practice bun?",
+        "topicTag": "butter",
+        "fallbackSourceId": "DEV-BUN-QA-02"
+      },
+      {
+        "id": "bun-q3",
+        "text": "Can I try another ingredient?",
+        "topicTag": "name",
+        "fallbackSourceId": "DEV-BUN-QA-03"
+      }
+    ]
+  },
+  "quiz": {
+    "question": "Which ingredient completes this practice bun?",
+    "options": [
+      "Pineapple ring",
+      "Cold butter",
+      "Egg"
+    ],
+    "correctIndex": 1,
+    "clue": "Remember the named choice in the practice.",
+    "explanation": "This checks the interface activity, not cultural knowledge.",
+    "sourceId": "DEV-BUN-UI"
+  },
+  "cards": [
+    {
+      "variantId": "crust",
+      "title": "The cracked top",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-BUN-UI",
+      "crop": null
+    },
+    {
+      "variantId": "butter",
+      "title": "A little butter",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-BUN-UI",
+      "crop": null
+    },
+    {
+      "variantId": "name",
+      "title": "A familiar name",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-BUN-UI",
+      "crop": null
+    }
+  ],
+  "defaultCardVariant": "crust"
+}

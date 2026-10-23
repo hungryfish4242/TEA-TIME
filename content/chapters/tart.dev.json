@@ -1,0 +1,102 @@
+{
+  "id": "tart",
+  "devOnly": true,
+  "contentVersion": "dev-0.2",
+  "guideId": "third_generation_owner",
+  "title": "Hong Kong egg tart",
+  "oneIdea": "Transmission",
+  "beats": [
+    {
+      "id": "tart-b1",
+      "title": "Another place at the table",
+      "text": "Development placeholder — final story text is pending source review. This is panel 1 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 1 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    },
+    {
+      "id": "tart-b2",
+      "title": "Look before you choose",
+      "text": "Development placeholder — final story text is pending source review. This is panel 2 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 2 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    },
+    {
+      "id": "tart-b3",
+      "title": "Make it your own",
+      "text": "Development placeholder — final story text is pending source review. This is panel 3 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "caption": "Development placeholder. Final caption pending source review.",
+      "transcript": "Development placeholder — final story text is pending source review. This is panel 3 at the tart table. It reserves space for an approved story about one everyday object and the people connected with it. For this build, read at your own pace and use the next button when you are ready. The following practice uses labelled buttons, with a clue whenever you choose a different option. Nothing here asks you to race a timer or remember an unverified historical claim. Your progress will be saved at each completed panel.",
+      "sourceIds": [],
+      "audio": null
+    }
+  ],
+  "interaction": {
+    "type": "tart_inspect"
+  },
+  "qa": {
+    "maxTurns": 2,
+    "suggested": [
+      {
+        "id": "tart-q1",
+        "text": "Can I skip inspecting the tarts?",
+        "topicTag": "migration",
+        "fallbackSourceId": "DEV-TART-QA-01"
+      },
+      {
+        "id": "tart-q2",
+        "text": "Which sample has visible layers?",
+        "topicTag": "schools",
+        "fallbackSourceId": "DEV-TART-QA-02"
+      },
+      {
+        "id": "tart-q3",
+        "text": "What if I choose the other tart?",
+        "topicTag": "craft",
+        "fallbackSourceId": "DEV-TART-QA-03"
+      }
+    ]
+  },
+  "quiz": {
+    "question": "Which labelled sample did this practice ask you to choose?",
+    "options": [
+      "Shortcrust",
+      "Puff pastry",
+      "Neither"
+    ],
+    "correctIndex": 1,
+    "clue": "Remember the named choice in the practice.",
+    "explanation": "This checks the interface activity, not cultural knowledge.",
+    "sourceId": "DEV-TART-UI"
+  },
+  "cards": [
+    {
+      "variantId": "migration",
+      "title": "A story to follow",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-TART-UI",
+      "crop": null
+    },
+    {
+      "variantId": "schools",
+      "title": "Two textures",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-TART-UI",
+      "crop": null
+    },
+    {
+      "variantId": "craft",
+      "title": "A closer look",
+      "caption": "Generated illustration; team review pending.",
+      "fact": "Development placeholder — no cultural claim.",
+      "sourceId": "DEV-TART-UI",
+      "crop": null
+    }
+  ],
+  "defaultCardVariant": "migration"
+}
