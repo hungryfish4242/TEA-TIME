@@ -1,0 +1,1 @@
+{"name":"cha-chaan-teng-time-machine","private":true,"type":"module","scripts":{"test":"node --test","check:dev":"node scripts/check-content.mjs --dev","check:production":"node scripts/check-content.mjs"}}
