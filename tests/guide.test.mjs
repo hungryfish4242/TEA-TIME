@@ -16,3 +16,8 @@ test('request and response boundaries reject invalid content',async()=>{
  for(const patch of [{sourceIds:['fake']},{topicTag:'fake'},{answer:'word '.repeat(91)},{safety:'fake'}])assert.throws(()=>validateResponse({...base,...patch}),GuideError);
  assert.equal(validateResponse({...base,answer:'<b>Text only</b>'}).answer,'<b>Text only</b>');
 });
+test('frontend accepts the chapter UI sources legitimately returned by the backend',()=>{
+ for(const [chapter,source,topic] of [['tea','DEV-UI-02','craft'],['bun','DEV-BUN-UI','butter'],['tart','DEV-TART-UI','schools']]){
+  assert.deepEqual(validateResponse({answer:'A source-backed interface answer.',sourceIds:[source],topicTag:topic,safety:'ok',suggestedFollowUp:null},chapter).sourceIds,[source]);
+ }
+});

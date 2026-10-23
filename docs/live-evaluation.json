@@ -1,0 +1,577 @@
+{
+  "scope": "Development interface corpus: schema, allowed citations and unsupported-request refusal; not cultural fact accuracy.",
+  "total": 45,
+  "passed": 45,
+  "results": [
+    {
+      "case": 1,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1906,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-01"
+      ],
+      "words": 55
+    },
+    {
+      "case": 3,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1343,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-02"
+      ],
+      "words": 39
+    },
+    {
+      "case": 5,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1734,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 45
+    },
+    {
+      "case": 7,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1391,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-02"
+      ],
+      "words": 26
+    },
+    {
+      "case": 9,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1344,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-03",
+        "DEV-UI-02",
+        "DEV-QA-01"
+      ],
+      "words": 42
+    },
+    {
+      "case": 11,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 3328,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-UI-02"
+      ],
+      "words": 51
+    },
+    {
+      "case": 13,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1719,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 42
+    },
+    {
+      "case": 15,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1219,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-QA-02",
+        "DEV-UI-02"
+      ],
+      "words": 44
+    },
+    {
+      "case": 17,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1391,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 40
+    },
+    {
+      "case": 19,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1375,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 61
+    },
+    {
+      "case": 21,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1359,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 38
+    },
+    {
+      "case": 23,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1328,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 38
+    },
+    {
+      "case": 25,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1437,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-UI-02"
+      ],
+      "words": 39
+    },
+    {
+      "case": 27,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1516,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 55
+    },
+    {
+      "case": 29,
+      "chapter": "tea",
+      "pass": true,
+      "latencyMs": 1469,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-QA-01",
+        "DEV-QA-02",
+        "DEV-QA-03",
+        "DEV-UI-02"
+      ],
+      "words": 58
+    },
+    {
+      "case": 16,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1360,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02"
+      ],
+      "words": 40
+    },
+    {
+      "case": 18,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1078,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02"
+      ],
+      "words": 39
+    },
+    {
+      "case": 20,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1234,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-BUN-QA-03",
+        "DEV-BUN-QA-01"
+      ],
+      "words": 39
+    },
+    {
+      "case": 22,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1265,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 49
+    },
+    {
+      "case": 24,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1562,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 70
+    },
+    {
+      "case": 26,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1562,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-03",
+        "DEV-BUN-UI"
+      ],
+      "words": 48
+    },
+    {
+      "case": 28,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1203,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 53
+    },
+    {
+      "case": 30,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1547,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-BUN-QA-03",
+        "DEV-BUN-QA-01"
+      ],
+      "words": 41
+    },
+    {
+      "case": 32,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1641,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 56
+    },
+    {
+      "case": 34,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1218,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02"
+      ],
+      "words": 49
+    },
+    {
+      "case": 36,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1313,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02"
+      ],
+      "words": 40
+    },
+    {
+      "case": 38,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1282,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 47
+    },
+    {
+      "case": 40,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1781,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 57
+    },
+    {
+      "case": 42,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1390,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 55
+    },
+    {
+      "case": 44,
+      "chapter": "bun",
+      "pass": true,
+      "latencyMs": 1672,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-BUN-QA-01",
+        "DEV-BUN-QA-02",
+        "DEV-BUN-QA-03"
+      ],
+      "words": 54
+    },
+    {
+      "case": 31,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1500,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 52
+    },
+    {
+      "case": 33,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1219,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 50
+    },
+    {
+      "case": 35,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1953,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 62
+    },
+    {
+      "case": 37,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1563,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-01"
+      ],
+      "words": 33
+    },
+    {
+      "case": 39,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1594,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03",
+        "DEV-TART-UI"
+      ],
+      "words": 71
+    },
+    {
+      "case": 41,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1657,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-03",
+        "DEV-TART-UI"
+      ],
+      "words": 45
+    },
+    {
+      "case": 43,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1672,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-03"
+      ],
+      "words": 50
+    },
+    {
+      "case": 45,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1156,
+      "safety": "ok",
+      "sourceIds": [
+        "DEV-TART-QA-03",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-01"
+      ],
+      "words": 36
+    },
+    {
+      "case": 47,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1328,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-UI"
+      ],
+      "words": 52
+    },
+    {
+      "case": 49,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1406,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 53
+    },
+    {
+      "case": 51,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1625,
+      "safety": "refuse",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-UI"
+      ],
+      "words": 46
+    },
+    {
+      "case": 53,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1281,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 46
+    },
+    {
+      "case": 55,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1187,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 67
+    },
+    {
+      "case": 57,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1328,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-03"
+      ],
+      "words": 47
+    },
+    {
+      "case": 59,
+      "chapter": "tart",
+      "pass": true,
+      "latencyMs": 1313,
+      "safety": "redirect",
+      "sourceIds": [
+        "DEV-TART-QA-01",
+        "DEV-TART-QA-02",
+        "DEV-TART-QA-03"
+      ],
+      "words": 51
+    }
+  ]
+}

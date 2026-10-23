@@ -35,3 +35,17 @@
 - Original PNGs, exact generation prompts and reusable encoding/audit tools retained.
 - Scratch regression diagnostics and screenshots remain ignored in `tmp/`; reusable assertions were incorporated into tests. No additional scratch deletion was authorized.
 - Keep the initialized `feat/m1` branch and local preview. No remote, push, merge or public deployment was requested.
+
+## M2 continuation
+- User accepted M1 and authorized completing remaining work; plan: `docs/superpowers/plans/2026-10-23-m2.md`.
+- Shared chapter engine/content/guide contracts committed in `f63616d`; 31 Node tests passed.
+- Bun/tart activities and normal three-table journey committed in `294c356`; 33 Node tests and three targeted browser checks passed.
+- User supplied and authorized local DeepSeek configuration. Ignored `.local/config.json` holds the credential; safe local server and API committed in `01a32f8`. Two backend tests, a live UI fixture and an actual provider call passed.
+- Sharing/download fallback committed in `3e513f5`; 35 Node tests and targeted browser checks passed.
+- 45/45 live development-corpus backend checks passed; not a cultural accuracy claim. Review revealed UI-source acceptance mismatch in 17 records; fixed and covered by frontend fixtures.
+- Fresh independent review found three material issues; all received RED→GREEN regressions. Additional regression protects already earned chapters from the dev shortcut.
+- Real browser live answer succeeded with fallback=false at 1,483 ms; all three chapters completed at tablet width. Generated artwork visually checked.
+- Ruling: provider configuration is local and protected by an HTTP allowlist in both preview and tests; ordinary static serving is restricted to the sanitized offline ZIP.
+- Ruling: incomplete bun/tart practices restart at their safe activity checkpoint, preserving the existing storage schema and all completed chapter work.
+- Formal cultural sources, approved audio and physical-device acceptance remain missing inputs; they are explicitly distinguished from completed application mechanics.
+- M2 final gate: 37 Node tests, 2 backend tests and 20 browser tests passed; sanitized offline ZIP rebuilt and production gate correctly rejected development content. All requested local implementation and configured live integration work committed; no outstanding reviewer findings.

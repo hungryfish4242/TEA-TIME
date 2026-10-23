@@ -32,5 +32,6 @@
 - Once implementation exists, after each logical code change run `node --test`.
 - Content changes also run `node scripts/check-content.mjs --dev` (must pass) and `node scripts/check-content.mjs` (must reject M1 development content).
 - UI changes run `uv run python -m unittest discover -s tests/browser -p "test_*.py"` using the user-approved project Playwright dependency and an existing Chromium browser. No additional installation without approval.
-- Serve locally with `python -m http.server 8000 --bind 127.0.0.1`.
+- Serve the source checkout with `uv run python server.py --port 8000`; generic static servers can expose local configuration and must only serve the explicitly allowlisted offline package.
+- User authorized the DeepSeek integration and ignored `.local/config.json`. Never print its contents, serve it, include it in a package or stage it in Git. Run backend checks with `uv run python -m unittest discover -s tests/server -p "test_*.py"`.
 - Record actual browser/device, viewport, commands and results; distinguish automated checks from unperformed manual NVDA/VoiceOver and physical-device checks.

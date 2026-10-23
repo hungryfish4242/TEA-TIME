@@ -10,8 +10,15 @@ import threading
 import unittest
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Page
+from server import AppHandler
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+class OfflineAppHandler(AppHandler):
+    """Reuse the private-file allowlist while preventing paid calls in browser regressions."""
+
+    live_enabled = False
 
 
 class JourneyTests(unittest.TestCase):
@@ -20,7 +27,7 @@ class JourneyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Serve the repository on an ephemeral local port."""
-        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(ROOT))
+        handler = OfflineAppHandler
         cls.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
@@ -340,6 +347,28 @@ class JourneyTests(unittest.TestCase):
         with self.page.expect_download() as result:
             self.page.get_by_role("button", name="Share certificate", exact=True).click()
         self.assertEqual(result.value.suggested_filename, "cha-chaan-teng-certificate.png")
+
+    def test_delayed_share_cannot_write_into_a_reset_visit(self) -> None:
+        """An old share rejection cannot download or log data for a new visitor."""
+        self.open("?dev=1")
+        self.reach_certificate()
+        downloads: list[str] = []
+        self.page.on("download", lambda download: downloads.append(download.suggested_filename))
+        self.page.evaluate("Object.defineProperty(navigator,'canShare',{value:()=>true,configurable:true});Object.defineProperty(navigator,'share',{value:()=>new Promise((resolve,reject)=>{window.rejectShare=reject}),configurable:true})")
+        self.page.get_by_role("button", name="Share certificate", exact=True).click()
+        self.page.wait_for_function("typeof window.rejectShare === 'function'")
+        self.page.get_by_role("button", name="Start a new visit", exact=True).click()
+        self.page.locator("dialog").get_by_role("button", name="Start a new visit", exact=True).click()
+        self.page.get_by_role("button", name="Begin my order").wait_for()
+        self.page.evaluate("window.rejectShare(new DOMException('Not available','NotAllowedError'))")
+        self.page.wait_for_timeout(200)
+        self.assertEqual(downloads, [])
+        self.assertIsNone(self.page.evaluate("localStorage.getItem('ccttm.events.v1')"))
+
+    def test_test_server_denies_private_paths(self) -> None:
+        """The test harness cannot expose private project directories either."""
+        response = self.page.request.head(self.url + "/.local/config.json")
+        self.assertIn(response.status, (404, 405))
 
 
 if __name__ == "__main__":

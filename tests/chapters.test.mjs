@@ -22,3 +22,7 @@ test('chapter-specific topics and reload checkpoints do not modify previous card
  let s=finish(createSession('phone'),'tea');s=transition(s,{type:'startChapter',chapterId:'bun'});s=transition(s,{type:'beat',chapterId:'bun'});
  assert.equal(deriveStep(s,'bun'),'story');assert.equal(s.chapters.bun.storyBeat,1);assert.equal(s.chapters.tea.card.variantId,'craft');assert.equal(validSession(s),true);
 });
+test('development completion preserves chapters already earned through the normal journey',()=>{
+ let s=finish(finish(createSession('phone'),'tea'),'bun');s.chapters.bun.card.variantId='butter';const earned=structuredClone(s.chapters.bun);
+ s=transition(s,{type:'devComplete',chapterId:'tea',dev:true});assert.deepEqual(s.chapters.bun,earned);
+});

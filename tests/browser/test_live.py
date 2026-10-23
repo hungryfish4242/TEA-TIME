@@ -2,6 +2,7 @@
 import json
 import unittest
 import test_journey as journey
+from playwright.sync_api import Route
 
 
 class LiveModeTests(journey.JourneyTests):
@@ -11,10 +12,10 @@ class LiveModeTests(journey.JourneyTests):
         """The browser sends only the guide contract and renders the validated answer."""
         requests: list[dict] = []
 
-        def respond(route) -> None:
+        def respond(route: Route) -> None:
             """Capture the actual application request at the HTTP boundary."""
             requests.append(route.request.post_data_json)
-            route.fulfill(status=200, content_type="application/json", body=json.dumps({"answer": "Choose steady mode for four untimed taps.", "sourceIds": ["DEV-QA-01"], "topicTag": "craft", "safety": "ok", "suggestedFollowUp": None}))
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"answer": "Choose steady mode for four untimed taps.", "sourceIds": ["DEV-UI-02"], "topicTag": "craft", "safety": "ok", "suggestedFollowUp": None}))
 
         self.page.route("**/api/guide", respond)
         self.open()
@@ -28,6 +29,6 @@ class LiveModeTests(journey.JourneyTests):
         self.assertIn("four untimed taps", self.page.locator(".answer").inner_text())
 
 
-def load_tests(loader, tests, pattern):
+def load_tests(loader: unittest.TestLoader, tests: unittest.TestSuite, pattern: str | None) -> unittest.TestSuite:
     """Run only this class's added test instead of duplicating inherited journeys."""
     return unittest.TestSuite([LiveModeTests("test_live_request_and_disclosure")])

@@ -1,39 +1,41 @@
 # The Cha Chaan Teng Time Machine
 
-An internal, English-language M1 prototype for the AIH5571 course project. Plain HTML, CSS and JavaScript modules; no frontend build or runtime package dependencies.
+An internal, English-language three-chapter prototype for AIH5571. Plain HTML/CSS/JavaScript with an optional standard-library Python DeepSeek proxy; no frontend build or runtime package dependencies.
 
 ## Run locally
 
 From the project directory:
 
 ```powershell
-uv run python -m http.server 8000 --bind 127.0.0.1
+uv run python server.py --port 8000
 ```
 
-Open <http://127.0.0.1:8000/?dev=1>. Complete the tea table, collect the card, then use **Complete remaining chapters** to preview the three-card scene and certificate. Bun and tart interactions belong to M2 and remain locked in this build.
+Open <http://127.0.0.1:8000/>. Complete tea, bun and tart in sequence, collect the three cards, then create your certificate. No development shortcut is needed. The configured local server enables live DeepSeek answers; `?offline=1` selects local sample answers.
 
 | Address | Purpose |
 | --- | --- |
-| `http://127.0.0.1:8000/` | Normal phone journey with the tea chapter |
+| `http://127.0.0.1:8000/` | Normal three-chapter journey and configured live guide |
+| `http://127.0.0.1:8000/?offline=1` | Entire journey with local answers |
 | `http://127.0.0.1:8000/?dev=1` | Development completion controls and local event export |
 | `http://127.0.0.1:8000/?dev=1&mode=kiosk` | Entry attract and certificate idle reset |
 | `http://127.0.0.1:8000/?dev=1&mock=fail` | Forced 8-second guide timeout and local fallback |
 | `http://127.0.0.1:8000/?reset=1` | Confirmed staff reset with event-export prompt |
 
-Do not open `index.html` through `file://`; ES modules and JSON loading need the local HTTP server. No external service is contacted by the application. Once the initial local assets have loaded, the journey continues without network access.
+Do not open `index.html` through `file://`; ES modules and JSON loading need the local HTTP server. Use `server.py` for the source checkout: it excludes `.local/`, `.git/`, test environments and other private files from HTTP serving. Live questions and current-table conversation are sent to DeepSeek; certificate names are never sent. After initial asset loading, the journey can continue without network access using fallback answers.
 
 ## What is implemented
 
-- Entry, how-it-works, order card, three tea story beats, captions and full transcripts.
+- Entry, how-it-works, order card, three story beats per table, captions and full transcripts.
 - Four-pour rhythm practice, one wider retry and a no-timing steady mode.
-- Two-turn mock Q&A, local fallback, source panel and order check.
-- Topic-based tea card labels, card detail, three-card development finale.
+- Bun assembly with correction, 12-second hint and button-only controls; tart inspection with text descriptions and retry.
+- Two-turn per-table live/mock Q&A, local fallback, source panel and order checks.
+- Three topic-based card variants per table, card details, sequential unlocks and three-card finale.
 - Local 1080 × 1350 PNG certificate with an optional in-memory nickname.
 - Progress restore, route guards, visitor/staff resets and kiosk idle behavior.
 - Anonymous local events with JSON export and a 2,000-event cap.
 - Three generated editorial illustrations, shared by screens and certificate.
 
-No live model, narration, approved historical story, production deployment or final M1 course-team sign-off is included. The development badge and production rejection check are intentional.
+Live integration is configured locally. Reviewed cultural fact sheets, final narration/audio and course-team public acceptance are not supplied. Current stories and sources are development material, so the badge and production rejection check remain intentional. A working provider does not make those sources historically verified.
 
 ## Verification
 
@@ -44,6 +46,7 @@ node --test
 node scripts/check-content.mjs --dev
 node scripts/audit.mjs
 uv run python -m unittest discover -s tests/browser -p "test_*.py"
+uv run python -m unittest discover -s tests/server -p "test_*.py"
 ```
 
 The production check must reject this build:
@@ -52,7 +55,15 @@ The production check must reject this build:
 node scripts/check-content.mjs
 ```
 
-Browser tests own their temporary local server and close it afterwards. Test downloads, screenshots and logs belong in ignored `tmp/`. See [verification evidence](docs/verification-m1.md) for actual results and remaining device checks.
+Browser tests own their temporary server and do not use paid model calls. Test downloads, screenshots and logs belong in ignored `tmp/`. See [M1 evidence](docs/verification-m1.md), [M2 evidence](docs/verification-m2.md) and [live guide details](docs/live-guide.md). `scripts/evaluate-guide.py` is an explicit 45-call live evaluation and writes credential-free results to `docs/live-evaluation.json`.
+
+## Offline handoff
+
+```powershell
+uv run python scripts/package.py
+```
+
+This creates `dist/cha-chaan-teng-offline.zip`, containing all three chapters, illustrations and certificate generation. It contains no provider key, local config, Git data or test environment. Unzip and serve that packaged directory with `python -m http.server 8000`; its guide uses local answers. Do not use a generic static server on the source checkout containing local configuration.
 
 ## Content and artwork
 

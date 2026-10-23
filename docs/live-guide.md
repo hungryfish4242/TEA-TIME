@@ -11,3 +11,5 @@ Requests are limited to 120 question characters, the current table's conversatio
 The model receives only the chapter-specific development source descriptions and instructions to refuse unsupported cultural claims. Responses must have at most 90 words, a valid topic, known source IDs, safety status and no HTML. This is real model integration, but the available corpus is still interface material: it is not a completed cultural-history RAG corpus.
 
 Initial real call succeeded in 1,063 ms with a 31-word answer and source `DEV-QA-01`. Subsequent automated grounding/contract evaluation is recorded separately; neither replaces human cultural review.
+
+The 45-case live evaluation passed its backend checks. Final review found that 17 real responses used permitted UI source IDs initially omitted from the frontend validator; the frontend now accepts the same chapter QA/UI source union as the backend. A browser HTTP fixture explicitly covers such a UI citation. This distinction is preserved: backend evaluation is not by itself proof that the frontend displayed every result.

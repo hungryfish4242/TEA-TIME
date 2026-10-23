@@ -105,6 +105,8 @@ def ask_provider(value: dict[str, Any]) -> dict[str, Any]:
 class AppHandler(SimpleHTTPRequestHandler):
     """Serve only allowlisted application files and same-origin JSON endpoints."""
 
+    live_enabled = True
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Bind static serving to the project directory."""
         super().__init__(*args, directory=str(ROOT), **kwargs)
@@ -142,7 +144,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         url_path = urllib.parse.unquote(urllib.parse.urlsplit(self.path).path)
         if url_path == "/api/status":
             config = configuration()
-            self.json_response(200, {"live": bool(config.get("enabled") and config.get("api_key")), "provider": "DeepSeek", "model": config.get("model"), "corpus": "development interface sources"})
+            self.json_response(200, {"live": bool(self.live_enabled and config.get("enabled") and config.get("api_key")), "provider": "DeepSeek", "model": config.get("model"), "corpus": "development interface sources"})
             return
         relative = url_path.lstrip("/") or "index.html"
         target = (ROOT / relative).resolve()
@@ -152,7 +154,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         if relative == "index.html":
             html = target.read_text(encoding="utf-8")
             config = configuration()
-            if config.get("enabled") and config.get("api_key"):
+            if self.live_enabled and config.get("enabled") and config.get("api_key"):
                 html = html.replace('name="guide-mode" content="offline"', 'name="guide-mode" content="live"')
             encoded = html.encode("utf-8")
             self.send_response(200)
@@ -170,6 +172,9 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         """Validate, rate-limit and proxy one guide question without storing its body."""
+        if not self.live_enabled:
+            self.json_response(503, {"error": "OFFLINE_MODE"})
+            return
         if not self.allowed_host() or self.path != "/api/guide":
             self.json_response(403, {"error": "ORIGIN_DENIED"})
             return
