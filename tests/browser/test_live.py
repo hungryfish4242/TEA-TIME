@@ -21,7 +21,7 @@ class LiveModeTests(journey.JourneyTests):
         self.open()
         self.page.locator('meta[name="guide-mode"]').evaluate("el => el.content = 'live'")
         self.reach_qa()
-        self.assertIn("sent to DeepSeek", self.page.locator("main").inner_text())
+        self.assertIn("sent to Alibaba Cloud Model Studio", self.page.locator("main").inner_text())
         self.page.get_by_role("button", name="What does steady mode do?", exact=True).click()
         self.page.locator(".answer").wait_for()
         self.assertEqual(requests[0]["chapterId"], "tea")

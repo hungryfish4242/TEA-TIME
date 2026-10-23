@@ -1,11 +1,14 @@
 """Verify provider boundaries, grounded response validation and private-file isolation."""
 import json
+import tempfile
 import threading
 import unittest
 import urllib.request
 import urllib.error
 from http.server import ThreadingHTTPServer
+from pathlib import Path
 from server import AppHandler, validate_request, validate_answer, load_chapter
+import server
 
 
 class ServerTests(unittest.TestCase):
@@ -44,6 +47,60 @@ class ServerTests(unittest.TestCase):
         finally:
             server.shutdown()
             server.server_close()
+
+
+    def test_openai_protocol_builds_chat_request_and_parses_choice(self) -> None:
+        """The OpenAI-compatible path posts chat/completions with bearer auth and parses choices."""
+        payload = {"answer": "Steady mode removes timing.", "sourceIds": ["DEV-QA-01"], "topicTag": "craft", "safety": "ok", "suggestedFollowUp": None}
+        config = {"enabled": True, "protocol": "openai", "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1", "api_key": "test-key", "model": "qwen-flash", "timeout_seconds": 7}
+        captured: dict = {}
+
+        class FakeResponse:
+            """Stand in for a provider HTTP response without network access."""
+
+            def __enter__(self) -> "FakeResponse":
+                return self
+
+            def __exit__(self, *args: object) -> bool:
+                return False
+
+            def read(self, limit: int) -> bytes:
+                return json.dumps({"choices": [{"message": {"content": json.dumps(payload)}}]}).encode("utf-8")
+
+        def fake_open(request: urllib.request.Request, timeout: float | None = None) -> FakeResponse:
+            captured["url"] = request.full_url
+            captured["headers"] = dict(request.headers)
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return FakeResponse()
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(config), encoding="utf-8")
+            original_path, original_open = server.CONFIG_PATH, server.urllib.request.urlopen
+            server.CONFIG_PATH, server.urllib.request.urlopen = path, fake_open
+            try:
+                result = server.ask_provider({"sessionId": "s", "chapterId": "tea", "personaId": "tea_master", "question": "What does steady mode do?", "history": [], "mode": "phone"})
+            finally:
+                server.CONFIG_PATH, server.urllib.request.urlopen = original_path, original_open
+        self.assertTrue(captured["url"].endswith("/chat/completions"))
+        self.assertEqual(captured["headers"].get("Authorization"), "Bearer test-key")
+        self.assertEqual(captured["body"]["messages"][0]["role"], "system")
+        self.assertEqual(captured["body"]["messages"][-1]["content"], "What does steady mode do?")
+        self.assertEqual(result["topicTag"], "craft")
+
+    def test_configuration_rejects_unlisted_provider_host(self) -> None:
+        """Only allowlisted HTTPS provider hosts may be configured."""
+        config = {"enabled": True, "protocol": "openai", "base_url": "https://evil.example.com/v1", "api_key": "test-key", "model": "qwen-flash"}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(config), encoding="utf-8")
+            original_path = server.CONFIG_PATH
+            server.CONFIG_PATH = path
+            try:
+                with self.assertRaises(ValueError):
+                    server.configuration()
+            finally:
+                server.CONFIG_PATH = original_path
 
 
 if __name__ == "__main__":
