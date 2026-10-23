@@ -80,6 +80,34 @@ class JourneyTests(unittest.TestCase):
         self.assertTrue(trigger.evaluate("el => el === document.activeElement"))
         self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 375)
 
+    def reach_practice(self) -> None:
+        """Complete the three story beats."""
+        self.start_story()
+        for _ in range(2):
+            self.page.get_by_role("button", name="Next beat").click()
+        self.page.get_by_role("button", name="Try the practice").click()
+
+    def test_steady_mode_resume_and_completion(self) -> None:
+        """No-timing practice persists taps and completes with reduced motion."""
+        self.context.close()
+        self.context = self.browser.new_context(viewport={"width": 375, "height": 667}, reduced_motion="reduce")
+        self.page = self.context.new_page()
+        self.page.on("pageerror", lambda error: self.errors.append(str(error)))
+        self.open()
+        self.reach_practice()
+        self.page.get_by_role("button", name="Use steady mode", exact=True).click()
+        for _ in range(2):
+            self.page.get_by_role("button", name="Pour", exact=True).press("Enter")
+            self.page.wait_for_timeout(300)
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.assertIn("2 of 4 pours", self.page.locator("main").inner_text())
+        self.page.get_by_role("button", name="Resume practice", exact=True).click()
+        for _ in range(2):
+            self.page.get_by_role("button", name="Pour", exact=True).press("Enter")
+            self.page.wait_for_timeout(300)
+        self.assertIn("Practice complete", self.page.locator("main").inner_text())
+
 
 if __name__ == "__main__":
     unittest.main()

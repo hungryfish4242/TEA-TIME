@@ -4,10 +4,11 @@ import {createStorage} from './storage.js';
 import {resolveRoute} from './router.js';
 import {loadContent} from './content.js';
 import {openDialog,setupDialog} from './dialog.js';
-import {escapeHtml,entryView,orderView,introView,storyView} from './views.js';
+import {escapeHtml,entryView,orderView,introView,storyView,teaView} from './views.js';
+import {mountTea} from './tea.js';
 
 const mode=readMode(location.search),store=createStorage(localStorage,sessionStorage);
-let session=store.load(mode.mode),chapter,sources,viewedBeat=null;
+let session=store.load(mode.mode),chapter,sources,viewedBeat=null,cleanupScreen=()=>{};
 const main=document.querySelector('main'),dialog=document.querySelector('#dialog');
 setupDialog(dialog);
 /** Commit a state transition immediately. @param {import('./state.js').Action} action @returns {void} */
@@ -19,6 +20,7 @@ function showDialog(title,body){document.querySelector('#dialog-content').innerH
 /** Render current route and move focus to its heading. @returns {void} */
 function render(){
  if(!chapter)return;
+ cleanupScreen();cleanupScreen=()=>{};
  const route=resolveRoute(location.hash||'#/',session);if(route!==(location.hash||'#/')){location.replace(route);return;}
  let html='';
  if(route==='#/')html=entryView();
@@ -27,9 +29,11 @@ function render(){
    const step=deriveStep(session);
    if(step==='intro')html=introView();
    else if(step==='story')html=storyView(chapter,viewedBeat??session.chapters.tea.storyBeat);
+   else if(step==='interaction')html=teaView(session.chapters.tea.interaction);
    else html='<section class="centered"><h1 tabindex="-1">The practice table</h1><p>The next development step is being prepared.</p><button data-action="order">Back to my order card</button></section>';
  }
  main.innerHTML=html;main.dataset.ready='true';main.querySelector('h1')?.focus({preventScroll:true});window.scrollTo(0,0);
+ if(route==='#/tea'&&deriveStep(session)==='interaction')cleanupScreen=mountTea(main,session.chapters.tea.interaction,(value)=>apply({type:'interaction',value}));
  document.title=`${main.querySelector('h1')?.textContent??'Your visit'} · Time Machine`;
 }
 /** Handle declarative actions from the shell and screens. @param {MouseEvent} event @returns {void} */
@@ -39,6 +43,7 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'order':go('#/order');break;
  case 'tea':apply({type:'chapterIntro'});viewedBeat=null;go('#/tea');break;
  case 'begin-story':apply({type:'startChapter'});render();break;
+ case 'continue-practice':render();break;
  case 'next-beat':{const index=viewedBeat??session.chapters.tea.storyBeat;if(index===session.chapters.tea.storyBeat)apply({type:'beat'});viewedBeat=index<session.chapters.tea.storyBeat-1?index+1:null;render();break;}
  case 'previous-beat':{const index=viewedBeat??session.chapters.tea.storyBeat;if(index===0)go('#/order');else{viewedBeat=index-1;render();}break;}
  case 'how':showDialog('Your table is ready.', '<ol><li>Take your order card. Three tables are waiting.</li><li>At each table, hear the story, try the craft, and ask a question.</li><li>Collect three cards. Put them together. Make your certificate.</li></ol><p>About 15–20 minutes for the planned full journey. This M1 build contains the tea table. Text, keyboard controls and a no-timing steady mode are available.</p><p>AI guide (mock) — no live model in this build. Final answers will be grounded in curator sources.</p>');break;
