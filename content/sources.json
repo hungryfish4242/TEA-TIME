@@ -1,0 +1,7 @@
+[
+ {"id":"DEV-QA-01","title":"Development sample: steady mode","devOnly":true,"description":"Explains the prototype controls only. Not a cultural source."},
+ {"id":"DEV-QA-02","title":"Development sample: skipping questions","devOnly":true,"description":"Explains the prototype controls only. Not a cultural source."},
+ {"id":"DEV-QA-03","title":"Development sample: source panel","devOnly":true,"description":"Explains this development source panel only."},
+ {"id":"DEV-UI-02","title":"Four-pour practice specification","devOnly":true,"description":"A game rule for this prototype; not a traditional preparation method."},
+ {"id":"DEV-UI-03","title":"Development card placeholder","devOnly":true,"description":"Original CSS/SVG placeholder; final artwork and cultural review pending."}
+]

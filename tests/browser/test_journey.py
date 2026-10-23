@@ -1,0 +1,85 @@
+"""Verify the real local interface with an existing Chromium installation."""
+from __future__ import annotations
+
+import functools
+import http.server
+import os
+import threading
+import unittest
+from pathlib import Path
+from playwright.sync_api import sync_playwright, Page
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+class JourneyTests(unittest.TestCase):
+    """Exercise navigation, accessible controls and real browser state."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Serve the repository on an ephemeral local port."""
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(ROOT))
+        cls.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+        cls.url = f"http://127.0.0.1:{cls.server.server_port}"
+        cls.playwright = sync_playwright().start()
+        installed = sorted((Path(os.environ["LOCALAPPDATA"]) / "ms-playwright").glob("chromium-*/chrome-win64/chrome.exe"))
+        cls.browser = cls.playwright.chromium.launch(headless=True, executable_path=str(installed[-1]) if installed else None)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Close browser and the test-owned server."""
+        cls.browser.close()
+        cls.playwright.stop()
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def setUp(self) -> None:
+        """Use an isolated browser context for each visitor."""
+        self.context = self.browser.new_context(viewport={"width": 375, "height": 667})
+        self.page: Page = self.context.new_page()
+        self.errors: list[str] = []
+        self.page.on("pageerror", lambda error: self.errors.append(str(error)))
+
+    def tearDown(self) -> None:
+        """Require no unhandled browser exceptions."""
+        self.context.close()
+        self.assertEqual(self.errors, [])
+
+    def open(self, query: str = "") -> None:
+        """Wait until local content and the shell are ready."""
+        self.page.goto(self.url + "/" + query)
+        self.page.wait_for_selector("[data-ready='true']")
+
+    def start_story(self) -> None:
+        """Reach the first tea story beat through public controls."""
+        self.page.get_by_role("button", name="Begin my order").click()
+        self.page.get_by_role("button", name="Visit the tea table", exact=True).click()
+        self.page.get_by_role("button", name="Begin the story").click()
+
+    def test_entry_story_reload_and_locked_routes(self) -> None:
+        """A visitor resumes the completed story checkpoint after reload."""
+        self.open()
+        self.start_story()
+        self.page.get_by_role("button", name="Next beat").click()
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.assertIn("Beat 2 of 3", self.page.locator("main").text_content())
+        self.page.goto(self.url + "/#/bun")
+        self.page.wait_for_url("**/#/order")
+        self.assertTrue(self.page.get_by_role("button", name="Chapter 2 — coming in M2").is_disabled())
+
+    def test_modal_focus_and_phone_layout(self) -> None:
+        """Dialogs restore focus; entry remains within a phone viewport."""
+        self.open()
+        trigger = self.page.get_by_role("button", name="How it works", exact=True)
+        trigger.click()
+        self.assertTrue(self.page.locator("dialog[open]").is_visible())
+        self.page.keyboard.press("Escape")
+        self.assertTrue(trigger.evaluate("el => el === document.activeElement"))
+        self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), 375)
+
+
+if __name__ == "__main__":
+    unittest.main()

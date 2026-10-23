@@ -31,6 +31,6 @@
 - Documentation-only setup: verify file existence, original-file SHA-256 preservation and local Markdown links; do not report application tests before code exists.
 - Once implementation exists, after each logical code change run `node --test`.
 - Content changes also run `node scripts/check-content.mjs --dev` (must pass) and `node scripts/check-content.mjs` (must reject M1 development content).
-- UI changes run `python -m unittest discover -s tests/browser -p "test_*.py"` using the existing Python Playwright installation and an existing browser. Do not install a browser or package without approval.
+- UI changes run `uv run python -m unittest discover -s tests/browser -p "test_*.py"` using the user-approved project Playwright dependency and an existing Chromium browser. No additional installation without approval.
 - Serve locally with `python -m http.server 8000 --bind 127.0.0.1`.
 - Record actual browser/device, viewport, commands and results; distinguish automated checks from unperformed manual NVDA/VoiceOver and physical-device checks.

@@ -1,0 +1,14 @@
+[project]
+name = "cha-chaan-teng-browser-tests"
+version = "0.1.0"
+description = "Browser verification for the local M1 prototype"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "playwright>=1.64.1",
+]
