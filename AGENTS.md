@@ -3,7 +3,7 @@
 ## Scope and authority
 - Build The Cha Chaan Teng Time Machine from `docs/build-now-spec.md` and `docs/cha-chaan-teng-time-machine.md`.
 - Follow the user's supplied global AGENTS.md instructions. Conversation is Chinese; application copy, code, commands and identifiers are English.
-- Review the implementation plan with the user before product code. Initial scope is M1; M2 follows M1 sign-off.
+- Review the implementation plan with the user before product code. User accepted M1 and authorized continuing the existing M2 specification on 23 October 2026; preserve the continuous test/commit workflow.
 - Build-now takes precedence for M1 sequencing and development contracts; the PRD governs cultural rules. Record discrepancies in the plan.
 
 ## Structure and naming
