@@ -1,3 +1,4 @@
+import {updateCelebration} from './celebration.js';
 import {shareCertificate} from './sharing.js';
 import {guideIsLive} from './transport.js';
 import {CHAPTERS} from './chapters.js';
@@ -20,7 +21,8 @@ const mode=readMode(location.search),store=createBrowserStorage(window);
 let session=store.load(mode.mode),chapter,chapters,sources,viewedBeat=null,cleanupScreen=()=>{},qaBusy=false,showingAnswer=false,requestToken=0;
 let telemetry=createTelemetry(store,session.sessionId);
 let nickname='',generating=false;
-let kiosk=null;
+let kiosk=null,welcomeClicks=0;
+history.scrollRestoration='manual';
 const main=document.querySelector('main'),dialog=document.querySelector('#dialog');
 setupDialog(dialog);
 /** Commit a state transition immediately. @param {import('./state.js').Action} action @returns {void} */
@@ -53,14 +55,16 @@ function go(route){if(location.hash===route)render();else location.hash=route;}
 /** Display information inside an accessible native dialog. @param {string} title @param {string} body @returns {void} */
 function showDialog(title,body){document.querySelector('#dialog-content').innerHTML=`<h2 id="dialog-title">${escapeHtml(title)}</h2>${body}`;openDialog(dialog,document.activeElement);}
 /** Clear this visit consistently for visitor, kiosk and staff resets. @param {string} trigger @returns {void} */
-function resetVisit(trigger){cleanupScreen();requestToken++;qaBusy=false;showingAnswer=false;nickname='';record('session_reset',{trigger});const cleared=store.reset(trigger==='staff');session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();document.querySelector('#banner').replaceChildren();if(!cleared)document.querySelector('#banner').textContent='This browser blocked clearing stored data. Clear this site’s data in browser settings before handing the device to another visitor.';kiosk?.activity();go('#/');}
+function resetVisit(trigger){welcomeClicks=0;cleanupScreen();requestToken++;qaBusy=false;showingAnswer=false;nickname='';record('session_reset',{trigger});const cleared=store.reset(trigger==='staff');session=createSession(mode.mode);telemetry=createTelemetry(store,session.sessionId);viewedBeat=null;dialog.close();document.querySelector('#banner').replaceChildren();if(!cleared)document.querySelector('#banner').textContent='This browser blocked clearing stored data. Clear this site’s data in browser settings before handing the device to another visitor.';kiosk?.activity();go('#/');}
 /** Show or update a cancelable certificate idle countdown. @param {number|null} seconds @returns {void} */
 function countdown(seconds){if(seconds===null){if(dialog.dataset.kind==='idle'){dialog.dataset.kind='';dialog.close();}return;}if(dialog.dataset.kind!=='idle'){showDialog('This visit is almost over.', '<p>Starting a new visit in <b id="idle-seconds">10</b> seconds.</p><div class="actions"><button data-action="keep-looking">Keep looking</button><button class="secondary" data-action="reset-now">Start a new visit</button></div>');dialog.dataset.kind='idle';}document.querySelector('#idle-seconds').textContent=String(seconds);}
 /** Render current route and move focus to its heading. @returns {void} */
 function render(){
  if(!chapter)return;
+ const previousY=window.scrollY;
  cleanupScreen();cleanupScreen=()=>{};
  const route=resolveRoute(location.hash||'#/',session);if(route!==(location.hash||'#/')){location.replace(route);return;}
+ if(route!=='#/')welcomeClicks=0;
  let html='';
  if(route==='#/')html=entryView();
  if(route==='#/order')html=orderView(session,mode.dev);
@@ -76,7 +80,7 @@ function render(){
    else if(step==='quiz')html=quizView(chapter,session.chapters[chapter.id].quiz);
    else html=cardView(chapter,session.chapters[chapter.id]);
  }
- main.innerHTML=html;main.dataset.ready='true';main.querySelector('h1')?.focus({preventScroll:true});window.scrollTo(0,0);
+ main.innerHTML=html;main.dataset.ready='true';main.querySelector('h1')?.focus({preventScroll:true});window.scrollTo({top:Math.min(previousY,Math.max(0,document.documentElement.scrollHeight-window.innerHeight)),left:0,behavior:'instant'});updateCelebration(session);
  if(route==='#/certificate')renderCertificate(main.querySelector('canvas'),nickname,session,true);
  if(CHAPTERS[route.slice(2)]&&deriveStep(session,chapter.id)==='interaction'){record('interaction_start',{chapterId:chapter.id},'interaction-start');const save=(value,result)=>{apply({type:'interaction',value});if(result)record('interaction_attempt',{chapterId:chapter.id,attemptNumber:value.attempts,result},`attempt-${value.attempts}-${value.lastCompletedPour??result}`);if(value.status==='complete')record('interaction_complete',{chapterId:chapter.id,attempts:value.attempts,steadyMode:value.usedSteadyMode},'interaction-complete');};cleanupScreen=chapter.id==='tea'?mountTea(main,session.chapters[chapter.id].interaction,save):mountActivity(main,chapter.id,save);}
 
@@ -85,6 +89,9 @@ function render(){
 /** Handle declarative actions from the shell and screens. @param {MouseEvent} event @returns {void} */
 function onClick(event){const button=event.target.closest('[data-action]');if(!button||button.disabled)return;const action=button.dataset.action;
  switch(action){
+ case 'welcome-secret':welcomeClicks++;if(welcomeClicks===5){welcomeClicks=0;showDialog('Unlock all levels?', '<p>Open every table now? Your existing progress and cards will be kept. Cards still need to be earned through each table.</p><button data-action="confirm-unlock">Unlock all levels</button>');}break;
+ case 'confirm-unlock':apply({type:'unlockAll',chapterId:'tea'});dialog.close();render();document.querySelector('#announcer').textContent='All tables are now open.';break;
+ case 'initialize-levels':showDialog('Initialize levels?', '<p>Return to the beginning? This clears your progress, cards and questions, and locks the later tables again.</p><button data-action="confirm-reset">Initialize levels</button>');break;
  case 'skip-content':event.preventDefault();main.focus();main.scrollIntoView({behavior:'instant'});break;
  case 'start':apply({type:'start'});record('session_start',{mode:mode.mode,appVersion:CONFIG.appVersion},'start');record('intro_complete',{elapsedMs:Date.now()-Date.parse(session.startedAt)},'intro-complete');go('#/order');break;
  case 'order':go('#/order');break;
@@ -114,7 +121,7 @@ function onClick(event){const button=event.target.closest('[data-action]');if(!b
  case 'how':showDialog('Your table is ready.', '<ol><li>Take your order card. Three tables are waiting.</li><li>At each table, hear the story, try the craft, and ask a question.</li><li>Collect three cards. Put them together. Make your certificate.</li></ol><p>About 15–20 minutes for the planned full journey. This build contains all three tables. Text, keyboard controls and a no-timing steady mode are available.</p><p>Guide mode is shown on the entry and question screens. All current sources are development material awaiting review.</p>');break;
  case 'sources':showDialog('Sources & credits',`<p>Development entries only. Cultural fact sheets, final artwork and narration are pending review.</p><ul>${sources.map(s=>`<li><b>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</b><p>${escapeHtml(s.description)}</p></li>`).join('')}</ul><p>Illustrations: three AI-generated editorial food studies, created for this project. Team review pending. Fonts: local Georgia and Trebuchet MS with local fallbacks; no font files redistributed. No audio assets in this build.</p><p>The guides are fictional composite characters.</p>`);break;
  case 'privacy':showDialog('Privacy & AI', `<p>${guideIsLive()?'Live mode sends your question and current-table conversation to DeepSeek through this local server. The server does not persist questions, responses or names. DeepSeek retention follows its provider terms.':'Offline mode answers locally and sends nothing to an AI service.'}</p><p>Progress, settings and up to 2,000 anonymous events are stored on this device. Questions and answers remain in this tab’s session storage until the tab closes or your visit is cleared. Your optional certificate name stays in memory and the downloaded image only.</p><p>The current corpus covers prototype controls only. Historical answers require reviewed cultural sources.</p><button data-action="reset">Clear my data</button>`);break;
- case 'help':showDialog('Make yourself comfortable',`<p>Use Tab, Enter and Space to move through the experience. Story text and captions are always available. Choose steady mode during the practice for four taps without timing.</p><p>Narration not in this build.</p><p>${store.persistent?'Progress is saved on this device.':'Storage is unavailable. This visit works in memory; reloading will lose progress.'}</p><button class="secondary" data-action="reset">Start a new visit</button>${mode.dev?'<div class="dev-tools"><button class="secondary" data-action="export">Export local events</button><button class="secondary" data-action="toggle-offline">Show offline sample</button></div>':''}`);break;
+ case 'help':showDialog('Make yourself comfortable',`<p>Use Tab, Enter and Space to move through the experience. Story text and captions are always available. Choose steady mode during the practice for four taps without timing.</p><p>Narration not in this build.</p><p>${store.persistent?'Progress is saved on this device.':'Storage is unavailable. This visit works in memory; reloading will lose progress.'}</p><button class="secondary" data-action="reset">Start a new visit</button><button class="secondary" data-action="initialize-levels">Initialize levels</button>${mode.dev?'<div class="dev-tools"><button class="secondary" data-action="export">Export local events</button><button class="secondary" data-action="toggle-offline">Show offline sample</button></div>':''}`);break;
  case 'reset':showDialog('Start a new visit?', '<p>Start a new visit? This clears progress, cards and questions on this device.</p><button data-action="confirm-reset">Start a new visit</button>');break;
  case 'confirm-reset':resetVisit('visitor');break;
  case 'close-dialog':dialog.close();break;

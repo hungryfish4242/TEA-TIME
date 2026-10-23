@@ -35,6 +35,7 @@ export function deriveStep(s,id=s.currentChapter??'tea') { const t=s.chapters[id
 export function transition(previous,action) {
   const s=structuredClone(previous),id=action.chapterId??s.currentChapter??'tea'; if(!CHAPTERS[id]||!canVisit(s,id))return s; if(['chapterIntro','startChapter'].includes(action.type)&&!s.chapters[id].qa&&!s.cards.includes(id))s.chapters[id]=createChapter(id); const t=s.chapters[id]; s.updatedAt=new Date().toISOString();
   switch(action.type) {
+    case 'unlockAll':for(const key of CHAPTER_IDS){if(s.chapters[key].status==='locked')s.chapters[key]=createChapter(key);}break;
     case 'start': s.stage='order';break;
     case 'chapterIntro': s.stage='chapter';s.currentChapter=id;break;
     case 'startChapter':t.status=t.status==='complete'?'complete':'in_progress';s.stage='chapter';s.currentChapter=id;break;

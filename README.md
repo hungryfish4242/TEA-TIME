@@ -25,6 +25,10 @@ Do not open `index.html` through `file://`; ES modules and JSON loading need the
 
 ## What is implemented
 
+Home shortcut: activate **WELCOME IN** five times, then confirm **Unlock all levels**. This opens the three tables while preserving earned progress; cards still follow their order checks. All tables being accessible (normally or by shortcut) enables a gold treatment and brief confetti, with static feedback under reduced motion. **Initialize levels** on the order card or in Help resets the visit and restores sequential locks after confirmation.
+
+Rhythm practice advances only on explicit Pour taps; unattended beats loop without filling progress. Screen updates preserve the vertical scroll position, clamped when a new page is shorter.
+
 - Entry, how-it-works, order card, three story beats per table, captions and full transcripts.
 - Four-pour rhythm practice, one wider retry and a no-timing steady mode.
 - Bun assembly with correction, 12-second hint and button-only controls; tart inspection with text descriptions and retry.

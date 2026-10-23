@@ -6,4 +6,4 @@ export const CHAPTERS={
 };
 export const CHAPTER_IDS=Object.keys(CHAPTERS);
 /** Resolve sequential access without mutating older visits. @param {object} session @param {string} id @returns {boolean} */
-export function canVisit(session,id){const index=CHAPTER_IDS.indexOf(id);return index===0||(index>0&&session.chapters[CHAPTER_IDS[index-1]]?.status==='complete');}
+export function canVisit(session,id){const index=CHAPTER_IDS.indexOf(id);return index===0||(index>0&&(['available','in_progress','complete'].includes(session.chapters[id]?.status)||session.chapters[CHAPTER_IDS[index-1]]?.status==='complete'));}

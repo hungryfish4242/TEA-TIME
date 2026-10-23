@@ -49,3 +49,12 @@
 - Ruling: incomplete bun/tart practices restart at their safe activity checkpoint, preserving the existing storage schema and all completed chapter work.
 - Formal cultural sources, approved audio and physical-device acceptance remain missing inputs; they are explicitly distinguished from completed application mechanics.
 - M2 final gate: 37 Node tests, 2 backend tests and 20 browser tests passed; sanitized offline ZIP rebuilt and production gate correctly rejected development content. All requested local implementation and configured live integration work committed; no outstanding reviewer findings.
+
+## Welcome shortcut, rhythm and scrolling
+- User explicitly requested five-click home unlock, shared all-unlocked effects, initialize-levels option, and fixes for unattended rhythm progress and scroll jumps.
+- Diagnosis reproduced: idle rhythm reached 4/4 without input; a story render moved scrollY from 300 to 0. Both RED browser cases now pass.
+- Shortcut only makes locked chapters available; it preserves earned work and grants no cards. Existing status fields carry persistence; no schema migration. Cancel and reset covered.
+- Celebration uses a gold treatment and one brief burst per visit/page load, with motion disabled for reduced-motion preference. Natural unlock and cheat share the same accessible-state condition.
+- Decorative home stamp was intercepting the new button on phones; moved below the welcome row and made pointer-transparent.
+- Full verification: 38 Node tests, 2 backend tests, 23 browser tests passed (69.286 seconds for browser suite). Fresh read-only review found no material issues. Logs: `tmp/unlock-final-unit.log`, `tmp/unlock-full-browser.log`.
+- Offline ZIP rebuilt: 29 files, 737,730 bytes. Source preview needs a browser refresh to load the new modules.

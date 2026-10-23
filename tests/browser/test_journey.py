@@ -332,6 +332,7 @@ class JourneyTests(unittest.TestCase):
         self.key_activate("Four", exact=True)
         self.key_activate("Collect my card", exact=True)
         self.finish_food_table("bun")
+        self.assertTrue(self.page.locator("body").evaluate("el=>el.classList.contains('all-unlocked')"))
         self.finish_food_table("tart")
         self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), ["tea", "bun", "tart"])
         self.key_activate("See the three-card scene")
@@ -369,6 +370,51 @@ class JourneyTests(unittest.TestCase):
         """The test harness cannot expose private project directories either."""
         response = self.page.request.head(self.url + "/.local/config.json")
         self.assertIn(response.status, (404, 405))
+
+    def test_welcome_unlock_cancel_confirm_reload_and_initialize(self) -> None:
+        """Five welcome activations require consent and unlock access without giving cards."""
+        self.open()
+        welcome = self.page.get_by_role("button", name="WELCOME IN", exact=True)
+        for _ in range(4):
+            welcome.click()
+        self.assertFalse(self.page.locator("dialog").is_visible())
+        welcome.click()
+        self.page.keyboard.press("Escape")
+        self.assertEqual(self.page.evaluate("localStorage.getItem('ccttm.progress.v1')"), None)
+        for _ in range(5):
+            welcome.click()
+        self.page.get_by_role("button", name="Unlock all levels", exact=True).click()
+        self.assertTrue(self.page.locator("body").evaluate("el=>el.classList.contains('all-unlocked')"))
+        self.assertEqual(self.page.evaluate("JSON.parse(localStorage.getItem('ccttm.progress.v1')).cards"), [])
+        self.page.reload()
+        self.page.wait_for_selector("[data-ready='true']")
+        self.page.get_by_role("button", name="Begin my order").click()
+        self.assertTrue(self.page.get_by_role("button", name="Visit the tart table").is_enabled())
+        self.page.get_by_role("button", name="Initialize levels", exact=True).click()
+        self.page.locator("dialog").get_by_role("button", name="Initialize levels", exact=True).click()
+        self.page.get_by_role("button", name="Begin my order").click()
+        self.assertTrue(self.page.get_by_role("button", name="Visit the bun table").is_disabled())
+        self.assertFalse(self.page.locator("body").evaluate("el=>el.classList.contains('all-unlocked')"))
+
+    def test_idle_rhythm_does_not_add_pours(self) -> None:
+        """Elapsed beats are not visitor input and cannot advance a practice round."""
+        self.page.clock.install()
+        self.open()
+        self.reach_practice()
+        self.page.get_by_role("button", name="Start rhythm practice", exact=True).click()
+        self.page.clock.run_for(6000)
+        self.assertIn("0 of 4 pours", self.page.locator("#pour-count").inner_text())
+        self.assertFalse(self.page.locator("#practice-continue").is_visible())
+
+    def test_story_render_preserves_vertical_scroll(self) -> None:
+        """Replacing a story beat does not animate the viewport back to the page top."""
+        self.open()
+        self.start_story()
+        self.page.evaluate("window.scrollTo({top:300,behavior:'instant'})")
+        before = self.page.evaluate("window.scrollY")
+        self.page.locator('[data-action="next-beat"]').evaluate("el=>el.click()")
+        self.page.wait_for_timeout(400)
+        self.assertLess(abs(self.page.evaluate("window.scrollY") - before), 3)
 
 
 if __name__ == "__main__":
